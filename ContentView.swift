@@ -51,7 +51,7 @@ struct ContentView: View {
             } else {
                 Text("Select a Slide")
                     .font(.title)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white)
             }
         }
     }
