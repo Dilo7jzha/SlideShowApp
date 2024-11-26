@@ -5,9 +5,9 @@
 //  Created by D'Angelo Zhang on 1/11/2024.
 //
 
-import SwiftUI
+import Foundation
 
-struct Slide: Hashable {
+struct Slide: Hashable, Codable {
     var text: String = "Text"
-    var image: UIImage? = nil
+    var image: CodableImage? = nil
 }
