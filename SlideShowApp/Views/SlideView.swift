@@ -1,5 +1,5 @@
 //
-//  SlideDetailView.swift
+//  SlideView.swift
 //  SlideshowApp
 //
 //  Created by D'Angelo Zhang on 21/11/2024.
@@ -7,13 +7,13 @@
 
 import SwiftUI
 
-struct SlideDetailView: View {
-    @Binding var slide: Slide
+struct SlideView: View {
+    @Binding var slide: Slide?
     @State private var isImagePickerPresented = false
 
     var body: some View {
         VStack {
-            if let image = slide.image {
+            if let image = slide?.image {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -24,7 +24,7 @@ struct SlideDetailView: View {
                     .padding()
             }
             
-            TextEditor(text: $slide.text)
+            TextEditor(text: textBinding)
                 .font(.title)
                 .padding()
                 .border(Color.gray, width: 1)
@@ -34,12 +34,22 @@ struct SlideDetailView: View {
             }) {
                 Label("Add Image", systemImage: "photo")
             }
-            .padding()
             .sheet(isPresented: $isImagePickerPresented) {
-                ImagePicker(selectedImage: $slide.image)
+                ImagePicker(selectedImage: imageBinding)
             }
         }
-        .navigationTitle("Edit Story Point")
+    }
+    
+    private var textBinding: Binding<String> {
+        Binding<String>(
+            get: { slide?.text ?? ""  },
+            set: { slide?.text = $0 })
+    }
+    
+    private var imageBinding: Binding<UIImage?> {
+        Binding<UIImage?>(
+            get: { slide?.image },
+            set: { slide?.image = $0 })
     }
 }
 

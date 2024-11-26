@@ -41,12 +41,12 @@ struct ContentView: View {
     
     @ViewBuilder
     private var detailView: some View {
-        Text(selectedStoryPoint?.name ?? "")
         if let selectedStoryPoint,
-            let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
-            SlideDetailView(slide: Bindable(appModel).story[index].slide)
+           let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
+            StoryPointView(storyPoint: Bindable(appModel).story[index])
         } else {
-            Text("Select a Story Point")
+            let message = appModel.story.isEmpty ? "Add a Story Point" : "Select a Story Point"
+            Text(message)
                 .font(.title)
                 .foregroundColor(.white)
         }
@@ -59,8 +59,9 @@ struct ContentView: View {
             focusLongitude: Angle(degrees: 8),
             scale: 1
         )
+        let storyPointNumber = appModel.story.count + 1
         let storyPoint = StoryPoint(
-            name: "Unnamed Story Point",
+            name: "Story Point \(storyPointNumber)",
             slide: Slide(text: "Enter text here"),
             globeState: globeState
         )

@@ -8,6 +8,6 @@
 import SwiftUI
 
 struct Slide: Hashable {
-    var text: String
-    var image: UIImage?
+    var text: String = "Text"
+    var image: UIImage? = nil
 }
