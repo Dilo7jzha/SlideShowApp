@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct GlobeState {
+struct GlobeState: Hashable {
     var position: SIMD3<Float>
     var focusLatitude: Angle
     var focusLongitude: Angle

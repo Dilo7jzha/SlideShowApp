@@ -7,8 +7,7 @@
 
 import SwiftUI
 
-struct Slide: Identifiable, Hashable {
-    let id = UUID()
+struct Slide: Hashable {
     var text: String
     var image: UIImage?
 }

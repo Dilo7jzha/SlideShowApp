@@ -8,46 +8,32 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var slides: [Slide] = []
-    @State private var selectedSlide: Slide? // Tracks the currently selected slide
+    @Environment(AppModel.self) private var appModel
+    @State private var selectedStoryPoint: StoryPoint? // Tracks the currently selected StoryPoint
 
     var body: some View {
         NavigationSplitView {
-            VStack {
-                List {
-                    ForEach(slides) { slide in
-                        Button(action: {
-                            selectedSlide = slide
-                        }) {
-                            HStack {
-                                Text(slide.text)
-                                    .lineLimit(1)
-                                    .font(.headline)
-                                Spacer()
-                            }
-                        }
-                        .buttonStyle(PlainButtonStyle()) // Makes it look like a list item
-                        .padding(.vertical, 4)
-                        .background(selectedSlide?.id == slide.id ? Color.gray.opacity(0.2) : Color.clear) // Highlight selected
-                        .cornerRadius(8)
-                    }
-                    .onMove(perform: moveSlide)
+            List(selection: $selectedStoryPoint) {
+                ForEach(appModel.story) { storyPoint in
+                    NavigationLink(storyPoint.slide.text, value: storyPoint)
                 }
-                .navigationTitle("Slides")
-                .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            EditButton() // Enables drag-and-drop mode
-                        }
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button(action: addNewSlide) {
-                                Label("Add Slide", systemImage: "plus")
-                            }
-                        }
-                    }
+                .onDelete { appModel.story.remove(atOffsets: $0) }
+                .onMove { appModel.story.move(fromOffsets: $0, toOffset: $1) }
+            }
+            .listStyle(.sidebar)
+            .navigationTitle("Story Points")
+            .toolbar {
+                EditButton()
+                    .disabled(appModel.story.isEmpty)
+                Button(action: addStoryPoint) {
+                    Label("Add Story Point", systemImage: "plus")
                 }
+            }
         } detail: {
-            if let selectedSlide = selectedSlide, let index = slides.firstIndex(where: { $0.id == selectedSlide.id }) {
-                SlideDetailView(slide: $slides[index]) // Show slide content for editing
+            Text(selectedStoryPoint?.slide.text ?? "")
+            if let selectedStoryPoint,
+                let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
+                SlideDetailView(slide: Bindable(appModel).story[index].slide) // Show slide content for editing
             } else {
                 Text("Select a Slide")
                     .font(.title)
@@ -56,20 +42,15 @@ struct ContentView: View {
         }
     }
 
-    func addNewSlide() {
-        let newSlide = Slide(text: "New Slide", image: nil)
-        slides.append(newSlide)
-        selectedSlide = newSlide // Automatically select the new slide
+    func addStoryPoint() {
+        let globeState = GlobeState(position: [0, 0, 0], focusLatitude: Angle(degrees: 47), focusLongitude: Angle(degrees: 8), scale: 1)
+        let storyPoint = StoryPoint(slide: Slide(text: "Unnamed Story Point"), globeState: globeState)
+        appModel.story.append(storyPoint)
+        selectedStoryPoint = storyPoint // select the new story point
     }
-    
-    func moveSlide(from source: IndexSet, to destination: Int) {
-        slides.move(fromOffsets: source, toOffset: destination)
-    }
-
 }
-
-
 
 #Preview(windowStyle: .automatic) {
     ContentView()
+        .environment(AppModel())
 }

@@ -23,21 +23,21 @@ struct SlideDetailView: View {
                     .font(.headline)
                     .padding()
             }
-
+            
             TextEditor(text: $slide.text)
                 .font(.title)
                 .padding()
                 .border(Color.gray, width: 1)
             
             Button(action: {
-                            isImagePickerPresented = true
-                        }) {
-                            Label("Add Image", systemImage: "photo")
-                        }
-                        .padding()
-                        .sheet(isPresented: $isImagePickerPresented) {
-                            ImagePicker(selectedImage: $slide.image)
-                        }
+                isImagePickerPresented = true
+            }) {
+                Label("Add Image", systemImage: "photo")
+            }
+            .padding()
+            .sheet(isPresented: $isImagePickerPresented) {
+                ImagePicker(selectedImage: $slide.image)
+            }
         }
         .navigationTitle("Edit Slide")
     }
