@@ -9,7 +9,7 @@ import Foundation
 
 struct StoryPoint: Identifiable, Hashable {
     let id = UUID()
-    
+    var name: String
     var slide: Slide
     var globeState: GlobeState
 }

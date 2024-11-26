@@ -39,7 +39,7 @@ struct SlideDetailView: View {
                 ImagePicker(selectedImage: $slide.image)
             }
         }
-        .navigationTitle("Edit Slide")
+        .navigationTitle("Edit Story Point")
     }
 }
 
