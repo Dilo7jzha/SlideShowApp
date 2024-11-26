@@ -11,15 +11,26 @@ struct ContentView: View {
     @State private var editMode = EditMode.inactive
     @Environment(AppModel.self) private var appModel
     @State private var selectedStoryPoint: StoryPoint? // Tracks the currently selected StoryPoint
-
+    @State private var showExportJSON = false // true when the story points are to be exported to a JSON file
+    
     var body: some View {
         NavigationSplitView {
             navigationView
+            footerView
         } detail: {
             detailView
         }
+        .fileExporter(
+            isPresented: $showExportJSON,
+            document: jsonDocument,
+            contentType: .json,
+            defaultFilename: "Story Points",
+            onCompletion: { result in
+                print(result)
+            }
+        )
     }
-
+    
     @ViewBuilder
     private var navigationView: some View {
         List(selection: $selectedStoryPoint) {
@@ -34,11 +45,23 @@ struct ContentView: View {
         .toolbar {
             EditButton()
                 .disabled(appModel.story.isEmpty)
+                .labelStyle(.iconOnly)
             Button(action: addStoryPoint) {
                 Label("Add Story Point", systemImage: "plus")
             }
         }
         .environment(\.editMode, $editMode)
+    }
+    
+    @ViewBuilder
+    private var footerView: some View {
+        HStack {
+            Button("Export JSON") {
+                showExportJSON.toggle()
+            }
+            .disabled(appModel.story.isEmpty)
+        }
+        .padding()
     }
     
     @ViewBuilder
@@ -71,6 +94,18 @@ struct ContentView: View {
         editMode = .inactive
         Task { @MainActor in
             selectedStoryPoint = storyPoint // select the new story point
+        }
+    }
+    
+    var jsonDocument: JSONDocument? {
+        do {
+            let jsonEncoder = JSONEncoder()
+            let jsonData = try jsonEncoder.encode(appModel.story)
+            return JSONDocument(json: jsonData)
+        } catch {
+#warning("Need proper error handling")
+            print(error)
+            return nil
         }
     }
 }

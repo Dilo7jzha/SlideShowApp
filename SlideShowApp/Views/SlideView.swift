@@ -14,7 +14,7 @@ struct SlideView: View {
     var body: some View {
         VStack {
             if let image = slide?.image {
-                Image(uiImage: image)
+                Image(uiImage: image.image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .padding()
@@ -48,8 +48,15 @@ struct SlideView: View {
     
     private var imageBinding: Binding<UIImage?> {
         Binding<UIImage?>(
-            get: { slide?.image },
-            set: { slide?.image = $0 })
+            get: { slide?.image?.image },
+            
+            set: { newImage in
+                if let newImage {
+                    slide?.image = CodableImage(image: newImage)
+                } else {
+                    slide?.image = nil
+                }
+            })
     }
 }
 
