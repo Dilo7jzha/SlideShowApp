@@ -12,6 +12,7 @@ struct ContentView: View {
     @Environment(AppModel.self) private var appModel
     @State private var selectedStoryPoint: StoryPoint? // Tracks the currently selected StoryPoint
     @State private var showExportJSON = false // true when the story points are to be exported to a JSON file
+    @State private var showImportJSON = false // true when the story points are to be imported from a JSON file
     
     var body: some View {
         NavigationSplitView {
@@ -29,6 +30,24 @@ struct ContentView: View {
                 print(result)
             }
         )
+        .fileImporter(
+            isPresented: $showImportJSON,
+            allowedContentTypes: [.json],
+            onCompletion: { result in
+                importJSON(from: result)
+            }
+        )
+        .alert(
+            appModel.errorToShowInAlert?.localizedDescription ?? "An error occurred.",
+            isPresented: showErrorBinding,
+            presenting: appModel.errorToShowInAlert
+        ) { _ in
+            // default OK button
+        } message: { error in
+            if let message = error.alertSecondaryMessage {
+                Text(message)
+            }
+        }
     }
     
     @ViewBuilder
@@ -56,10 +75,14 @@ struct ContentView: View {
     @ViewBuilder
     private var footerView: some View {
         HStack {
-            Button("Export JSON") {
+            Button("Export") {
                 showExportJSON.toggle()
             }
             .disabled(appModel.story.isEmpty)
+            
+            Button("Import") {
+                showImportJSON.toggle()
+            }
         }
         .padding()
     }
@@ -97,16 +120,38 @@ struct ContentView: View {
         }
     }
     
-    var jsonDocument: JSONDocument? {
+    private var jsonDocument: JSONDocument? {
         do {
-            let jsonEncoder = JSONEncoder()
-            let jsonData = try jsonEncoder.encode(appModel.story)
+            let jsonData = try JSONEncoder().encode(appModel.story)
             return JSONDocument(json: jsonData)
         } catch {
-#warning("Need proper error handling")
-            print(error)
+            appModel.errorToShowInAlert = error
             return nil
         }
+    }
+    
+    private func importJSON(from result: Result<URL, any Error>) {
+        do {
+            let url = try result.get()
+            guard url.startAccessingSecurityScopedResource() else {
+                throw error("Cannot access file.")
+            }
+            defer { url.stopAccessingSecurityScopedResource() }
+            let jsonData = try Data(contentsOf: url)
+            appModel.story = try JSONDecoder().decode([StoryPoint].self, from: jsonData)
+        } catch {
+            appModel.errorToShowInAlert = error
+        }
+    }
+    
+    private var showErrorBinding: Binding<Bool> {
+        Binding<Bool>(
+            get: { appModel.errorToShowInAlert != nil },
+            set: {
+                if $0 == false {
+                    appModel.errorToShowInAlert = nil
+                }
+            })
     }
 }
 
