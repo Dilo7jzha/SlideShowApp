@@ -5,12 +5,21 @@
 //  Created by Bernhard Jenny on 26/11/2024.
 //
 
+import os
 import SwiftUI
 
 @MainActor
 @Observable
 class AppModel {
     var story: [StoryPoint] = []
+    var errorToShowInAlert: Error? = nil {
+        didSet {
+            if let errorToShowInAlert {
+                let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Globes Error")
+                logger.error("Alert: \(errorToShowInAlert.localizedDescription) \(errorToShowInAlert.alertSecondaryMessage ?? "")")
+            }
+        }
+    }
 }
 
 extension AppModel {
