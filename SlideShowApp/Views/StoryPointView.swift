@@ -33,7 +33,7 @@ struct StoryPointView: View {
             
             Spacer(minLength: 0)
         }
-        .navigationTitle("Story Point \"\(storyPoint.name)\"")
+        .navigationTitle(storyPoint.name)
     }
 }
 

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var editMode = EditMode.inactive
     @Environment(AppModel.self) private var appModel
     @State private var selectedStoryPoint: StoryPoint? // Tracks the currently selected StoryPoint
 
@@ -37,6 +38,7 @@ struct ContentView: View {
                 Label("Add Story Point", systemImage: "plus")
             }
         }
+        .environment(\.editMode, $editMode)
     }
     
     @ViewBuilder
@@ -66,7 +68,10 @@ struct ContentView: View {
             globeState: globeState
         )
         appModel.story.append(storyPoint)
-        selectedStoryPoint = storyPoint // select the new story point
+        editMode = .inactive
+        Task { @MainActor in
+            selectedStoryPoint = storyPoint // select the new story point
+        }
     }
 }
 
