@@ -10,6 +10,7 @@ import SwiftUI
 struct StoryPointView: View {
     @Binding var storyPoint: StoryPoint
     @State private var selectedTab = 0
+    @State private var showNamePanel: Bool = false
     
     var body: some View {
         VStack {
@@ -34,6 +35,28 @@ struct StoryPointView: View {
             Spacer(minLength: 0)
         }
         .navigationTitle(storyPoint.name)
+        .toolbar {
+            Button("Edit Name", systemImage: "pencil") {
+                showNamePanel.toggle()
+            }
+        }
+        .sheet(isPresented: $showNamePanel) {
+            VStack {
+                Text("Story Point Name")
+                    .font(.title)
+                
+                TextField(text: $storyPoint.name, prompt: Text("Name"), label: {
+                    Text("Story Point Name")
+                })
+                .textFieldStyle(.roundedBorder)
+                .padding()
+             
+                Button("Close") {
+                    showNamePanel = false
+                }
+            }
+            .padding()
+        }
     }
 }
 

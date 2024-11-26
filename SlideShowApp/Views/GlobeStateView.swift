@@ -95,11 +95,10 @@ struct GlobeStateView: View {
 struct NumberField: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .textFieldStyle(.roundedBorder)
             .keyboardType(.decimalPad)
             .multilineTextAlignment(.trailing)
             .frame(maxWidth: 200)
-//            .padding(.horizontal)
     }
 }
 
