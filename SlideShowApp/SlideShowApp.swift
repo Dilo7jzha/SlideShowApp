@@ -1,5 +1,5 @@
 //
-//  SlideshowAppApp.swift
+//  SlideShowApp.swift
 //  SlideshowApp
 //
 //  Created by D'Angelo Zhang on 1/11/2024.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct SlideshowAppApp: App {
+struct SlideShowApp: App {
     @State private var appModel = AppModel()
     
     var body: some Scene {
