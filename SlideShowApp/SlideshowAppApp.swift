@@ -9,10 +9,14 @@ import SwiftUI
 
 @main
 struct SlideshowAppApp: App {
+    @State private var appModel = AppModel()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(appModel)
         }
+        .windowResizability(.contentSize) // window resizability is derived from window content
     }
 }
  
