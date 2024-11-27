@@ -15,6 +15,7 @@ struct CodableImage: Codable, Hashable {
     let image: PlatformImage
     
     static let errorDomain = "CodableImageErrorDomain"
+    
     // Encoding the image to Base64
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
@@ -43,6 +44,20 @@ struct CodableImage: Codable, Hashable {
         self.image = image
     }
     
+    init(url: URL) throws {
+#if canImport(UIKit)
+        let data = try Data(contentsOf: url)
+        guard let image = UIImage(data: data) else {
+            throw error("Cannot load image.")
+        }
+        self.image = image
+#elseif canImport(AppKit)
+        guard let image = NSImage(contentsOf: url) else {
+            throw error("Cannot load image.")
+        }
+        self.image = image
+#endif
+    }
 
     private static func image(from data: Data) -> PlatformImage? {
 #if canImport(UIKit)

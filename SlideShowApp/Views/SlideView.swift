@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct SlideView: View {
+    @Environment(AppModel.self) private var appModel
     @Binding var slide: Slide?
-    @State private var isImagePickerPresented = false
+    @State private var showImageImporter = false
 
     var body: some View {
         VStack {
@@ -28,15 +29,25 @@ struct SlideView: View {
                 .border(Color.gray, width: 1)
             
             Button(action: {
-                isImagePickerPresented = true
+                showImageImporter = true
             }) {
                 Label("Add Image", systemImage: "photo")
             }
-            .sheet(isPresented: $isImagePickerPresented) {
-#if canImport(UIKit)
-#warning("TBD")
-                ImagePicker(selectedImage: imageBinding)
-#endif
+            .fileImporter(isPresented: $showImageImporter, allowedContentTypes: [.image]) { result in
+                switch result {
+                case .success(let url):
+                    do {
+                        guard url.startAccessingSecurityScopedResource() else {
+                            throw error("Cannot access file.")
+                        }
+                        defer { url.stopAccessingSecurityScopedResource() }
+                        slide?.image = try CodableImage(url: url)
+                    } catch {
+                        appModel.errorToShowInAlert = error
+                    }
+                case .failure(let error):
+                    appModel.errorToShowInAlert = error
+                }
             }
         }
     }
