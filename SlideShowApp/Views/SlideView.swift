@@ -16,6 +16,9 @@ struct SlideView: View {
         VStack {
             if let imageView {
                 imageView
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 300, maxHeight: 300)
                     .padding()
             } else {
                 Text("No Image")
