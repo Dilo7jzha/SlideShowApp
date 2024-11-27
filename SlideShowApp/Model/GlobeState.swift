@@ -9,8 +9,8 @@ import Foundation
 import SwiftUI
 
 struct GlobeState: Hashable, Codable {
-    var position: SIMD3<Float> = [0, 0, 0]
-    var focusLatitude = Angle.zero
-    var focusLongitude = Angle.zero
-    var scale: Float = 1
+    var position: SIMD3<Float>? = nil
+    var focusLatitude: Angle? = nil
+    var focusLongitude: Angle? = nil
+    var scale: Float? = nil
 }

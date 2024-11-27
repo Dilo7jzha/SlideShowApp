@@ -101,17 +101,11 @@ struct ContentView: View {
     }
     
     private func addStoryPoint() {
-        let globeState = GlobeState(
-            position: [0, 0, 0],
-            focusLatitude: Angle(degrees: 47),
-            focusLongitude: Angle(degrees: 8),
-            scale: 1
-        )
         let storyPointNumber = appModel.story.count + 1
         let storyPoint = StoryPoint(
             name: "Story Point \(storyPointNumber)",
             slide: Slide(text: "Enter text here"),
-            globeState: globeState
+            globeState: GlobeState()
         )
         appModel.story.append(storyPoint)
         editMode = .inactive
