@@ -5,6 +5,7 @@
 //  Created by D'Angelo Zhang on 1/11/2024.
 //
 
+#if canImport(UIKit)
 import SwiftUI
 import UIKit
 
@@ -44,3 +45,4 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
     }
 }
+#endif

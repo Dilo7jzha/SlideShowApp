@@ -12,44 +12,64 @@ struct GlobeStateView: View {
     
     var body: some View {
         Form {
-            ControlGroup("Globe Position") {
-                LabeledContent("XYZ") {
-                    Toggle(isOn: usePositionBinding) { EmptyView() }
-                    Group {
+            Section("Globe Position") {
+                LabeledContent(content: {
+                    HStack {
+                        Text("X")
                         TextField("X", value: positionXBinding, formatter: formatter())
+                            .modifier(NumberField())
+                        Text("Y")
                         TextField("Y", value: positionYBinding, formatter: formatter())
+                            .modifier(NumberField())
+                        Text("Z")
                         TextField("Z", value: positionZBinding, formatter: formatter())
+                            .modifier(NumberField())
                     }
-                    .modifier(NumberField())
+                    .labelsHidden()
                     .disabled(globeState?.position == nil)
-                }
+                }, label: {
+                    Toggle(isOn: usePositionBinding) { Text("Move Globe") }
+                    .fixedSize()
+                })
             }
             
-            ControlGroup("Focus Point") {
+            Section("Focus Point") {
                 Toggle(isOn: useFocusPointBinding) { Text("Rotate to Focus Point") }
-                LabeledContent("Latitude") {
-                    TextField("Latitude", value: focusLatitudeBinding, formatter: formatter(min: -90, max: +90))
-                        .modifier(NumberField())
-                        .disabled(!rotateToFocusPoint)
+                
+                Grid(alignment: .leading) {
+                    GridRow {
+                        Text("Latitude")
+                        TextField("Latitude", value: focusLatitudeBinding, formatter: formatter(min: -90, max: +90))
+                            .modifier(NumberField())
+                        Slider(value: focusLatitudeBinding, in: -90...90)
+                            .labelsHidden()
+                    }
+                    GridRow {
+                        Text("Longitude")
+                        TextField("Longitude", value: focusLongitudeBinding, formatter: formatter(min: -180, max: +180))
+                            .modifier(NumberField())
+                        Slider(value: focusLongitudeBinding, in: -180...180)
+                            .labelsHidden()
+                    }
                 }
-
-                LabeledContent("Longitude") {
-                    TextField("Longitude", value: focusLongitudeBinding, formatter: formatter(min: -180, max: +180))
-                        .modifier(NumberField())
-                        .disabled(!rotateToFocusPoint)
-                }
+                .disabled(!rotateToFocusPoint)
             }
             
-            ControlGroup("Globe Size") {
-                LabeledContent("Scale") {
-                    Toggle(isOn: useScaleBinding) { EmptyView() }
+            Section("Globe Size") {
+                LabeledContent(content: {
                     TextField("Scale", value: scaleBinding, formatter: formatter(min: 0))
+                        .labelsHidden()
                         .modifier(NumberField())
                         .disabled(globeState?.scale == nil)
-                }
+                    
+                }, label: {
+                    Toggle(isOn: useScaleBinding) { Text("Scale") }
+                        .fixedSize()
+                })
             }
         }
-        .frame(minWidth: 500)
+        .formStyle(.grouped) // grouped required for macOS
+        .frame(minWidth: 400)
     }
     
     private func formatter(
@@ -149,13 +169,18 @@ struct GlobeStateView: View {
     }
 }
 
-struct NumberField: ViewModifier {
+fileprivate struct NumberField: ViewModifier {
     func body(content: Content) -> some View {
         content
             .textFieldStyle(.roundedBorder)
+#if canImport(UIKit)
             .keyboardType(.decimalPad)
+#endif
             .multilineTextAlignment(.trailing)
+            .monospacedDigit()
             .frame(maxWidth: 200)
+            .frame(minWidth: 75)
+            .labelsHidden() // visionOS does not render labels for text fields, but macOS does.
     }
 }
 

@@ -8,7 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
+#if os(iOS)
     @State private var editMode = EditMode.inactive
+#endif
+    
     @Environment(AppModel.self) private var appModel
     @State private var selectedStoryPoint: StoryPoint? // Tracks the currently selected StoryPoint
     @State private var showExportJSON = false // true when the story points are to be exported to a JSON file
@@ -62,14 +65,18 @@ struct ContentView: View {
         .listStyle(.sidebar)
         .navigationTitle("Story Points")
         .toolbar {
+#if os(iOS)
             EditButton()
                 .disabled(appModel.story.isEmpty)
                 .labelStyle(.iconOnly)
+#endif
             Button(action: addStoryPoint) {
                 Label("Add Story Point", systemImage: "plus")
             }
         }
+#if os(iOS)
         .environment(\.editMode, $editMode)
+#endif
     }
     
     @ViewBuilder
@@ -108,7 +115,9 @@ struct ContentView: View {
             globeState: GlobeState()
         )
         appModel.story.append(storyPoint)
+#if os(iOS)
         editMode = .inactive
+#endif
         Task { @MainActor in
             selectedStoryPoint = storyPoint // select the new story point
         }
@@ -149,7 +158,7 @@ struct ContentView: View {
     }
 }
 
-#Preview(windowStyle: .automatic) {
+#Preview {
     ContentView()
         .environment(AppModel())
 }

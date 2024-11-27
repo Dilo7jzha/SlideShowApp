@@ -14,12 +14,13 @@ struct StoryPointView: View {
     
     var body: some View {
         VStack {
-            Picker("What is your favorite color?", selection: $selectedTab) {
+            Picker("", selection: $selectedTab) {
                 Label("Slide", systemImage: "text.below.photo").tag(0)
                 Label("Globe", systemImage: "globe").tag(1)
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 400)
+            .padding()
             
             switch selectedTab {
             case 0:

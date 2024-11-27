@@ -13,10 +13,8 @@ struct SlideView: View {
 
     var body: some View {
         VStack {
-            if let image = slide?.image {
-                Image(uiImage: image.image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
+            if let imageView {
+                imageView
                     .padding()
             } else {
                 Text("No Image")
@@ -35,9 +33,21 @@ struct SlideView: View {
                 Label("Add Image", systemImage: "photo")
             }
             .sheet(isPresented: $isImagePickerPresented) {
+#if canImport(UIKit)
+#warning("TBD")
                 ImagePicker(selectedImage: imageBinding)
+#endif
             }
         }
+    }
+    
+    private var imageView: Image? {
+        guard let image = slide?.image else { return nil }
+#if canImport(UIKit)
+        return Image(uiImage: image.image)
+#elseif canImport(AppKit)
+        return Image(nsImage: image.image)
+#endif
     }
     
     private var textBinding: Binding<String> {
@@ -46,8 +56,8 @@ struct SlideView: View {
             set: { slide?.text = $0 })
     }
     
-    private var imageBinding: Binding<UIImage?> {
-        Binding<UIImage?>(
+    private var imageBinding: Binding<PlatformImage?> {
+        Binding<PlatformImage?>(
             get: { slide?.image?.image },
             
             set: { newImage in
