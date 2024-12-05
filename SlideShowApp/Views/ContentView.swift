@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var selectedStoryPoint: StoryPoint? // Tracks the currently selected StoryPoint
     @State private var showExportJSON = false // true when the story points are to be exported to a JSON file
     @State private var showImportJSON = false // true when the story points are to be imported from a JSON file
+    @State private var showGlobe = false // Toggles the visibility of the globe view
     
     var body: some View {
         NavigationSplitView {
@@ -73,6 +74,9 @@ struct ContentView: View {
             Button(action: addStoryPoint) {
                 Label("Add Story Point", systemImage: "plus")
             }
+            Button(action: { showGlobe.toggle() }) {
+                Label(showGlobe ? "Hide Globe" : "Show Globe", systemImage: "globe")
+            }
         }
 #if os(iOS)
         .environment(\.editMode, $editMode)
@@ -96,8 +100,11 @@ struct ContentView: View {
     
     @ViewBuilder
     private var detailView: some View {
-        if let selectedStoryPoint,
-           let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
+        if showGlobe, let selectedStoryPoint {
+            // Pass the globeState directly as optional
+            GlobeView(globeState: selectedStoryPoint.globeState)
+        } else if let selectedStoryPoint,
+                  let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
             StoryPointView(storyPoint: Bindable(appModel).story[index])
         } else {
             let message = appModel.story.isEmpty ? "Add a Story Point" : "Select a Story Point"
@@ -106,6 +113,8 @@ struct ContentView: View {
                 .foregroundColor(.white)
         }
     }
+
+
     
     private func addStoryPoint() {
         let storyPointNumber = appModel.story.count + 1
@@ -115,12 +124,15 @@ struct ContentView: View {
             globeState: GlobeState()
         )
         appModel.story.append(storyPoint)
-#if os(iOS)
-        editMode = .inactive
-#endif
+        
+        // Set the newly added story point as selected
         Task { @MainActor in
             selectedStoryPoint = storyPoint // select the new story point
         }
+        
+    #if os(iOS)
+        editMode = .inactive
+    #endif
     }
     
     private var jsonDocument: JSONDocument? {

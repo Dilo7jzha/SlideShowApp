@@ -11,17 +11,17 @@ struct StoryPointView: View {
     @Binding var storyPoint: StoryPoint
     @State private var selectedTab = 0
     @State private var showNamePanel: Bool = false
-    
+
     var body: some View {
         VStack {
             Picker("", selection: $selectedTab) {
                 Label("Slide", systemImage: "text.below.photo").tag(0)
-                Label("Globe", systemImage: "globe").tag(1)
+                Label("Globe Attributes", systemImage: "globe").tag(1)
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 400)
             .padding()
-            
+
             switch selectedTab {
             case 0:
                 SlideView(slide: $storyPoint.slide)
@@ -32,7 +32,7 @@ struct StoryPointView: View {
             default:
                 EmptyView()
             }
-            
+
             Spacer(minLength: 0)
         }
         .navigationTitle(storyPoint.name)
@@ -45,13 +45,13 @@ struct StoryPointView: View {
             VStack {
                 Text("Story Point Name")
                     .font(.title)
-                
+
                 TextField(text: $storyPoint.name, prompt: Text("Name"), label: {
                     Text("Story Point Name")
                 })
                 .textFieldStyle(.roundedBorder)
                 .padding()
-             
+
                 Button("Close") {
                     showNamePanel = false
                 }
@@ -60,6 +60,8 @@ struct StoryPointView: View {
         }
     }
 }
+
+
 
 #Preview {
     StoryPointView(storyPoint: .constant(StoryPoint(slide: Slide())))

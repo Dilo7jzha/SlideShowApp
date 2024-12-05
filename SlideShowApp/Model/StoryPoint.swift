@@ -6,9 +6,10 @@
 //
 
 import Foundation
+import RealityKit
 
 struct StoryPoint: Identifiable, Hashable, Codable {
-    let id = UUID()
+    var id = UUID()
     var name: String = "Unnamed Story Point"
     var slide: Slide? = nil
     var globeState: GlobeState? = nil
