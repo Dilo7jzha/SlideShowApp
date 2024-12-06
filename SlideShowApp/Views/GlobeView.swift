@@ -28,6 +28,9 @@ struct GlobeView: View {
         } update: { _ in // synchronous on MainActor
             globeEntity?.isEnabled = (appModel.selectedStoryPointID != nil)
             updateGlobeTransformation()
+        }.onChange(of: appModel.selectedStoryPoint) {
+            globeEntity?.isEnabled = (appModel.selectedStoryPointID != nil)
+            updateGlobeTransformation()
         }
     }
     

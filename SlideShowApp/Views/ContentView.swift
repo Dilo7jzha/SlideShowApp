@@ -60,11 +60,11 @@ struct ContentView: View {
     @ViewBuilder
     private var navigationView: some View {
         List(selection: Bindable(appModel).selectedStoryPointID) {
-            ForEach(appModel.story) { storyPoint in
+            ForEach(appModel.story.storyPoints) { storyPoint in
                 NavigationLink(storyPoint.name, value: storyPoint)
             }
-            .onDelete { appModel.story.remove(atOffsets: $0) }
-            .onMove { appModel.story.move(fromOffsets: $0, toOffset: $1) }
+            .onDelete { appModel.story.storyPoints.remove(atOffsets: $0) }
+            .onMove { appModel.story.storyPoints.move(fromOffsets: $0, toOffset: $1) }
         }
         .listStyle(.sidebar)
         .navigationTitle("Story Points")
@@ -97,7 +97,7 @@ struct ContentView: View {
             Button("Export") {
                 showExportJSON.toggle()
             }
-            .disabled(appModel.story.isEmpty)
+            .disabled(!appModel.story.hasStoryPoints)
             
             Button("Import") {
                 showImportJSON.toggle()
@@ -109,10 +109,10 @@ struct ContentView: View {
     @ViewBuilder
     private var detailView: some View {
         if let selectedStoryPointID = appModel.selectedStoryPointID,
-           let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPointID }) {
-            StoryPointView(storyPoint: Bindable(appModel).story[index])
+           let index = appModel.story.storyPointIndex(for: selectedStoryPointID) {
+            StoryPointView(storyPoint: Bindable(appModel).story.storyPoints[index])
         } else {
-            let message = appModel.story.isEmpty ? "Add a Story Point" : "Select a Story Point"
+            let message = appModel.story.hasStoryPoints ? "Select a Story Point" : "Add a Story Point"
             Text(message)
                 .font(.title)
                 .foregroundColor(.white)
@@ -120,13 +120,13 @@ struct ContentView: View {
     }
 
     private func addStoryPoint() {
-        let storyPointNumber = appModel.story.count + 1
+        let storyPointNumber = appModel.story.numberOfStoryPoints + 1
         let storyPoint = StoryPoint(
             name: "Story Point \(storyPointNumber)",
             slide: Slide(text: "Enter text here"),
             globeState: GlobeState()
         )
-        appModel.story.append(storyPoint)
+        appModel.story.addStoryPoint(storyPoint)
         
         // Set the newly added story point as selected
         Task { @MainActor in
@@ -139,7 +139,7 @@ struct ContentView: View {
     }
     
     private func deleteStoryPoint() {
-        appModel.story.removeAll(where: { $0.id == appModel.selectedStoryPointID })
+        appModel.story.removeStoryPoint(with: appModel.selectedStoryPointID)
         appModel.selectedStoryPointID = nil
     }
     
@@ -161,7 +161,7 @@ struct ContentView: View {
             }
             defer { url.stopAccessingSecurityScopedResource() }
             let jsonData = try Data(contentsOf: url)
-            appModel.story = try JSONDecoder().decode([StoryPoint].self, from: jsonData)
+            appModel.story = try JSONDecoder().decode(Story.self, from: jsonData)
         } catch {
             appModel.errorToShowInAlert = error
         }
