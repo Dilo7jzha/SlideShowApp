@@ -66,16 +66,20 @@ struct ContentView: View {
         .listStyle(.sidebar)
         .navigationTitle("Story Points")
         .toolbar {
-#if os(visionOS)
-            EditButton()
-                .disabled(appModel.story.isEmpty)
-                .labelStyle(.iconOnly)
-#endif
+            
             Button(action: addStoryPoint) {
                 Label("Add Story Point", systemImage: "plus")
             }
+#if os(visionOS)
+            EditButton()
+                .disabled(appModel.story.isEmpty)
+#else
+            Button(action: deleteStoryPoint, label: { Label("Delete Story Point", systemImage: "minus")})
+                .disabled(selectedStoryPoint == nil)
+#endif
             Button(action: { showGlobe.toggle() }) {
                 Label(showGlobe ? "Hide Globe" : "Show Globe", systemImage: "globe")
+                    .disabled(appModel.story.isEmpty)
             }
         }
 #if os(visionOS)
@@ -133,6 +137,13 @@ struct ContentView: View {
     #if os(visionOS)
         editMode = .inactive
     #endif
+    }
+    
+    private func deleteStoryPoint() {
+        if let selectedStoryPoint {
+            appModel.story.removeAll(where: { $0.id == selectedStoryPoint.id })
+            self.selectedStoryPoint = nil
+        }
     }
     
     private var jsonDocument: JSONDocument? {
