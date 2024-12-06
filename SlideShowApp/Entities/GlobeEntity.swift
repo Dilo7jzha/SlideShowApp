@@ -141,18 +141,22 @@ class GlobeEntity: Entity {
     ///   - location: The point on the globe that is to face the camera relative to the center of the globe.
     ///   - radius: The unscaled radius of the globe, needed for computing the duration of the animation. If nil a default duration is used for the animation.
     func rotate(to location: SIMD3<Float>, radius: Float? = nil) {
-        if let cameraPosition {
-            // Unary vector in global space from the globe center to the camera.
-            // This vector is pointing from the globe center toward the target position on the globe.
-            let v = normalize(cameraPosition - position(relativeTo: nil))
-
-            // rotate the point to the target position
-            let orientation = simd_quatf(from: normalize(location), to: v)
-//            orientation = Self.orientToNorth(orientation: orientation)
-            
+        if let orientation = orient(to: location) {
             let duration = animationDuration(for: orientation, radius: radius)
             animateTransform(orientation: orientation, duration: duration)
         }
+    }
+    
+    func orient(to location: SIMD3<Float>) -> simd_quatf? {
+        guard let cameraPosition else { return nil }
+        // Unary vector in global space from the globe center to the camera.
+        // This vector is pointing from the globe center toward the target position on the globe.
+        let v = normalize(cameraPosition - position(relativeTo: nil))
+        
+        // rotate the point to the target position
+        let orientation = simd_quatf(from: normalize(location), to: v)
+//        return Self.orientToNorth(orientation: orientation)
+        return orientation
     }
     
     /// Returns a duration in seconds for animating a transformation. Takes into account the size of the globe and the angular distance of the transformation.

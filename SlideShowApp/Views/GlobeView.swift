@@ -15,8 +15,8 @@ struct GlobeView: View {
     @State private var globeEntity: GlobeEntity? = nil
     
     var body: some View {
-        RealityView { content in
-            rootEntity.position = [0, 1, -1]
+        RealityView { content in // async on MainActor
+            rootEntity.position = [0, 0, 0]
             do {
                 globeEntity = try await GlobeEntity(globe: appModel.globe)
             } catch {
@@ -24,15 +24,32 @@ struct GlobeView: View {
             }
             globeEntity?.setParent(rootEntity)
             content.add(rootEntity)
-        } update: { _ in
+            globeEntity?.isEnabled = false
+        } update: { _ in // synchronous on MainActor
+            // update is triggered when @State properties change, but apparently not when @Environment properties change
+        }
+        .onChange(of: appModel.selectedStoryPoint) {
             globeEntity?.isEnabled = (appModel.selectedStoryPoint != nil)
             updateGlobeTransformation()
         }
     }
     
     private func updateGlobeTransformation() {
-        if let position = appModel.selectedStoryPoint?.globeState?.position {
-            globeEntity?.transform.translation = position
+        if let globeState = appModel.selectedStoryPoint?.globeState {
+            let orientation: simd_quatf?
+            if let xyz = globeState.latLonToXYZ(radius: 0.2) {
+                print(xyz)
+                orientation = globeEntity?.orient(to: xyz)
+            } else {
+                orientation = nil
+            }
+            
+            globeEntity?.animateTransform(
+                scale: globeState.scale,
+                orientation: orientation,
+                position: globeState.position,
+                duration: 2
+            )
         }
     }
     
