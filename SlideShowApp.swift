@@ -11,12 +11,6 @@ import SwiftUI
 struct SlideShowApp: App {
     @State private var appModel = AppModel()
     
-#if os(visionOS)
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-#else
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-#endif
-    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -47,26 +41,3 @@ struct SlideShowApp: App {
     }
 }
 
-#if os(visionOS)
-class AppDelegate: NSObject, UIApplicationDelegate {
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        
-        // register custom components and systems
-        RotationComponent.registerComponent()
-        RotationSystem.registerSystem()
-        
-        // start camera tracking
-        CameraTracker.start()
-        
-        return true
-    }
-}
-#else
-class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // register custom components and systems
-        RotationComponent.registerComponent()
-        RotationSystem.registerSystem()
-    }
-}
-#endif
