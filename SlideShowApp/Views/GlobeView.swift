@@ -48,7 +48,7 @@ class GlobeModel: ObservableObject {
     }
 
     init() {
-        let sphere = MeshResource.generateSphere(radius: 0.1)
+        let sphere = MeshResource.generateSphere(radius: 0.2)
         do {
             let texture = try TextureResource.load(named: "globe_texture")
             var material = SimpleMaterial()
@@ -60,7 +60,7 @@ class GlobeModel: ObservableObject {
         }
     }
 
-    func addGlobe(to content: RealityViewContent) {
+    func addGlobe(to content: RealityViewCameraContent) {
         content.add(globeEntity) // Adds the globe to RealityView
     }
 
@@ -72,10 +72,3 @@ class GlobeModel: ObservableObject {
         globeEntity.transform.translation = position // Apply the position from globeState
     }
 }
-
-
-
-
-
-
-
