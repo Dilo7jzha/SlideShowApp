@@ -34,9 +34,10 @@ struct ContentView: View {
             contentType: .json,
             defaultFilename: "Story Points",
             onCompletion: { result in
-                print(result)
-            }
-        )
+                if case .failure(let error) = result {
+                    appModel.errorToShowInAlert = error
+                }
+            })
         .fileImporter(
             isPresented: $showImportJSON,
             allowedContentTypes: [.json],
