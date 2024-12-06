@@ -9,66 +9,39 @@ import SwiftUI
 import RealityKit
 
 struct GlobeView: View {
-    var globeState: GlobeState?  // Optional instead of binding
+    @Environment(AppModel.self) private var appModel
 
-    var body: some View {
-        // If globeState is nil, show a placeholder or no globe.
-        if let state = globeState {
-            RealityKitGlobeView(globeState: state)  // Pass non-optional state to the view
-                .frame(height: 400)
-        } else {
-            Text("No globe state available")
-                .foregroundColor(.gray)
-                .font(.title)
-        }
-    }
-}
-
-
-
-struct RealityKitGlobeView: View {
-    @StateObject private var globeModel = GlobeModel()
-    var globeState: GlobeState  // Non-optional GlobeState
-
+    private let rootEntity = Entity()
+    private let globeEntity = ModelEntity()
+    
     var body: some View {
         RealityView { content in
-            globeModel.addGlobe(to: content)
-            globeModel.globeState = globeState // No optional handling here
+            rootEntity.position = [0, 1, -1]
+            createGlobeEntity()
+            globeEntity.setParent(rootEntity)
+            content.add(rootEntity)
         } update: { _ in }
+            .onChange(of: appModel.selectedStoryPoint) {
+                updateGlobeTransformation()
+            }
     }
-}
-
-
-class GlobeModel: ObservableObject {
-    private let globeEntity = ModelEntity()
-    @Published var globeState: GlobeState? {
-        didSet {
-            updateGlobePosition() // This will update the globe position when globeState changes
-        }
-    }
-
-    init() {
+    
+    private func createGlobeEntity() {
         let sphere = MeshResource.generateSphere(radius: 0.2)
         do {
             let texture = try TextureResource.load(named: "globe_texture")
             var material = SimpleMaterial()
             material.baseColor = .texture(texture) //A warning is shown here but it's working fine
-
             globeEntity.model = ModelComponent(mesh: sphere, materials: [material])
+            
         } catch {
             print("Failed to load texture: \(error.localizedDescription)")
         }
     }
-
-    func addGlobe(to content: any RealityViewContentProtocol) {
-        content.add(globeEntity) // Adds the globe to RealityView
-    }
-
-    private func updateGlobePosition() {
-        guard let position = globeState?.position else {
-            globeEntity.transform.translation = .zero // Default position if no globe state is available
-            return
+    
+    private func updateGlobeTransformation() {
+        if let position = appModel.selectedStoryPoint?.globeState?.position {
+            globeEntity.transform.translation = position
         }
-        globeEntity.transform.translation = position // Apply the position from globeState
     }
 }

@@ -53,7 +53,6 @@
 			children = (
 				7D60D7F82CF559B200D7C8AD /* SlideShowApp */,
 				7D60D7F92CF559B200D7C8AD /* Packages */,
-				B8CC69A42CF87F1E00C8D411 /* Frameworks */,
 				7D60D7F72CF559B200D7C8AD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -72,13 +71,6 @@
 				7D60D7FA2CF559B200D7C8AD /* RealityKitContent */,
 			);
 			path = Packages;
-			sourceTree = "<group>";
-		};
-		B8CC69A42CF87F1E00C8D411 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -170,7 +162,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SlideShowApp/Preview Content\"";
-				DEVELOPMENT_TEAM = TZDVL8LSYT;
+				DEVELOPMENT_TEAM = L8FKNLG3XM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
@@ -199,7 +191,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SlideShowApp/Preview Content\"";
-				DEVELOPMENT_TEAM = TZDVL8LSYT;
+				DEVELOPMENT_TEAM = L8FKNLG3XM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";

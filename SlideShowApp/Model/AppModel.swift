@@ -29,7 +29,21 @@ class AppModel {
             }
         }
     }
+    
+    // MARK: - Immersive Space
+    
+#if os(visionOS)
+    let immersiveSpaceID = "ImmersiveSpace"
+    enum ImmersiveSpaceState {
+        case closed
+        case inTransition
+        case open
+    }
+    var immersiveSpaceState = ImmersiveSpaceState.closed
+#endif
 }
+
+// MARK: - Preview
 
 extension AppModel {
     static var preview: AppModel {

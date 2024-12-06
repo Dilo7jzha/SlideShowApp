@@ -17,6 +17,18 @@ struct SlideShowApp: App {
                 .environment(appModel)
         }
         .windowResizability(.contentSize) // window resizability is derived from window content
+        
+        ImmersiveSpace(id: appModel.immersiveSpaceID) {
+            GlobeView()
+                .environment(appModel)
+                .onAppear {
+                    appModel.immersiveSpaceState = .open
+                }
+                .onDisappear {
+                    appModel.immersiveSpaceState = .closed
+                }
+        }
+        .immersionStyle(selection: .constant(.mixed), in: .mixed)
     }
 }
  

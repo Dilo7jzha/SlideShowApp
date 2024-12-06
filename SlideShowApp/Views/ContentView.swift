@@ -77,10 +77,15 @@ struct ContentView: View {
             Button(action: deleteStoryPoint, label: { Label("Delete Story Point", systemImage: "minus")})
                 .disabled(selectedStoryPoint == nil)
 #endif
+            
+#if os(visionOS)
+            ToggleImmersiveSpaceButton()
+#else
             Button(action: { showGlobe.toggle() }) {
                 Label(showGlobe ? "Hide Globe" : "Show Globe", systemImage: "globe")
                     .disabled(appModel.story.isEmpty)
             }
+#endif
         }
 #if os(visionOS)
         .environment(\.editMode, $editMode)
@@ -104,11 +109,13 @@ struct ContentView: View {
     
     @ViewBuilder
     private var detailView: some View {
-        if showGlobe, let selectedStoryPoint = appModel.selectedStoryPoint {
-            // Pass the globeState directly as optional
-            GlobeView(globeState: selectedStoryPoint.globeState)
-        } else if let selectedStoryPoint = appModel.selectedStoryPoint,
-                  let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
+#warning("Work in progress")        
+//        if showGlobe, let selectedStoryPoint = appModel.selectedStoryPoint {
+//            // Pass the globeState directly as optional
+//            GlobeView(globeState: selectedStoryPoint.globeState)
+//        } else
+        if let selectedStoryPoint = appModel.selectedStoryPoint,
+           let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
             StoryPointView(storyPoint: Bindable(appModel).story[index])
         } else {
             let message = appModel.story.isEmpty ? "Add a Story Point" : "Select a Story Point"
@@ -118,8 +125,6 @@ struct ContentView: View {
         }
     }
 
-
-    
     private func addStoryPoint() {
         let storyPointNumber = appModel.story.count + 1
         let storyPoint = StoryPoint(
