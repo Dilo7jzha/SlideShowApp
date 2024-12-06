@@ -12,6 +12,10 @@ import SwiftUI
 @Observable
 class AppModel {
     
+    // MARK: - Globe
+    
+    var globe = Globe(name: "Demo", radius: 0.2, texture: "globe_texture")
+    
     // MARK: - Story
     
     var story: [StoryPoint] = []

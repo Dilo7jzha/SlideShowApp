@@ -69,7 +69,6 @@ struct ContentView: View {
         .listStyle(.sidebar)
         .navigationTitle("Story Points")
         .toolbar {
-            
             Button(action: addStoryPoint) {
                 Label("Add Story Point", systemImage: "plus")
             }
@@ -109,11 +108,6 @@ struct ContentView: View {
     
     @ViewBuilder
     private var detailView: some View {
-#warning("Work in progress")        
-//        if showGlobe, let selectedStoryPoint = appModel.selectedStoryPoint {
-//            // Pass the globeState directly as optional
-//            GlobeView(globeState: selectedStoryPoint.globeState)
-//        } else
         if let selectedStoryPoint = appModel.selectedStoryPoint,
            let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
             StoryPointView(storyPoint: Bindable(appModel).story[index])

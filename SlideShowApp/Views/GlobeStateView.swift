@@ -29,7 +29,7 @@ struct GlobeStateView: View {
                     .disabled(globeState?.position == nil)
                 }, label: {
                     Toggle(isOn: usePositionBinding) { Text("Move Globe") }
-                    .fixedSize()
+                        .fixedSize()
                 })
             }
             

@@ -12,35 +12,27 @@ struct GlobeView: View {
     @Environment(AppModel.self) private var appModel
 
     private let rootEntity = Entity()
-    private let globeEntity = ModelEntity()
+    @State private var globeEntity: GlobeEntity? = nil
     
     var body: some View {
         RealityView { content in
             rootEntity.position = [0, 1, -1]
-            createGlobeEntity()
-            globeEntity.setParent(rootEntity)
-            content.add(rootEntity)
-        } update: { _ in }
-            .onChange(of: appModel.selectedStoryPoint) {
-                updateGlobeTransformation()
+            do {
+                globeEntity = try await GlobeEntity(globe: appModel.globe)
+            } catch {
+                print("Failed to load texture: \(error.localizedDescription)")
             }
-    }
-    
-    private func createGlobeEntity() {
-        let sphere = MeshResource.generateSphere(radius: 0.2)
-        do {
-            let texture = try TextureResource.load(named: "globe_texture")
-            var material = PhysicallyBasedMaterial()
-            material.baseColor.texture = MaterialParameters.Texture(texture, sampler: Self.highQualityTextureSampler)
-            globeEntity.model = ModelComponent(mesh: sphere, materials: [material])
-        } catch {
-            print("Failed to load texture: \(error.localizedDescription)")
+            globeEntity?.setParent(rootEntity)
+            content.add(rootEntity)
+        } update: { _ in
+            globeEntity?.isEnabled = (appModel.selectedStoryPoint != nil)
+            updateGlobeTransformation()
         }
     }
     
     private func updateGlobeTransformation() {
         if let position = appModel.selectedStoryPoint?.globeState?.position {
-            globeEntity.transform.translation = position
+            globeEntity?.transform.translation = position
         }
     }
     
