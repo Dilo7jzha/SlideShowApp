@@ -40,6 +40,8 @@ class AppModel {
         case open
     }
     var immersiveSpaceState = ImmersiveSpaceState.closed
+#else
+    static let macOSGlobeViewID = "macOSGlobeView"
 #endif
 }
 

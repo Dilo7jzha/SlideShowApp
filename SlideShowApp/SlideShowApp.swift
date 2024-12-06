@@ -18,6 +18,7 @@ struct SlideShowApp: App {
         }
         .windowResizability(.contentSize) // window resizability is derived from window content
         
+#if os(visionOS)
         ImmersiveSpace(id: appModel.immersiveSpaceID) {
             GlobeView()
                 .environment(appModel)
@@ -29,6 +30,13 @@ struct SlideShowApp: App {
                 }
         }
         .immersionStyle(selection: .constant(.mixed), in: .mixed)
+#else
+        WindowGroup(id: AppModel.macOSGlobeViewID) {
+            GlobeView()
+                .environment(appModel)
+        }
+        .windowResizability(.contentSize) // window resizability is derived from window content
+#endif
     }
 }
- 
+

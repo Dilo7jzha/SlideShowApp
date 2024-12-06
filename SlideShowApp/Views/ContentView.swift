@@ -8,14 +8,18 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(AppModel.self) private var appModel
+
 #if os(visionOS)
     @State private var editMode = EditMode.inactive
 #endif
     
-    @Environment(AppModel.self) private var appModel
+#if os(macOS)
+    @Environment(\.openWindow) private var openWindow
+#endif
+    
     @State private var showExportJSON = false // true when the story points are to be exported to a JSON file
     @State private var showImportJSON = false // true when the story points are to be imported from a JSON file
-    @State private var showGlobe = false // Toggles the visibility of the globe view
     
     var body: some View {
         NavigationSplitView {
@@ -73,18 +77,14 @@ struct ContentView: View {
 #if os(visionOS)
             EditButton()
                 .disabled(appModel.story.isEmpty)
-#else
-            Button(action: deleteStoryPoint, label: { Label("Delete Story Point", systemImage: "minus")})
-                .disabled(appModel.selectedStoryPoint == nil)
-#endif
-            
-#if os(visionOS)
             ToggleImmersiveSpaceButton()
 #else
-            Button(action: { showGlobe.toggle() }) {
-                Label(showGlobe ? "Hide Globe" : "Show Globe", systemImage: "globe")
-                    .disabled(appModel.story.isEmpty)
-            }
+            Button(action: deleteStoryPoint, label: { Label("Delete Story Point", systemImage: "minus") })
+                .disabled(appModel.selectedStoryPoint == nil)
+            Button(action: {
+                openWindow(id: AppModel.macOSGlobeViewID)
+            }, label: { Label("Globe", systemImage: "globe") })
+                .disabled(appModel.story.isEmpty)
 #endif
         }
 #if os(visionOS)
