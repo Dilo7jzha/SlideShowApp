@@ -37,4 +37,32 @@ struct Story: Identifiable, Codable, Hashable {
     mutating func addStoryPoint(_ storyPoint: StoryPoint) {
         storyPoints.append(storyPoint)
     }
+    
+    /// Find the GlobeState created by the n first story points, where n is the index of the  story point with a given ID.
+    /// - Parameter lastStoryPointID: ID of the StoryPoint for which the accumulated GlobeState is returned.
+    /// - Returns: GlobeState
+    func accumulatedGlobeState(for lastStoryPointID: StoryPoint.ID?) throws -> GlobeState {
+        guard storyPoint(with: lastStoryPointID) != nil else {
+            throw error("StoryPoint not found.")
+        }
+        var state = GlobeState(position: [0, 0, 0], focusLatitude: .zero, focusLongitude: .zero, scale: 1)
+        for storyPoint in storyPoints {
+            if let position = storyPoint.globeState?.position {
+                state.position = position
+            }
+            if let scale = storyPoint.globeState?.scale {
+                state.scale = scale
+            }
+            if let focusLatitude = storyPoint.globeState?.focusLatitude {
+                state.focusLatitude = focusLatitude
+            }
+            if let focusLongitude = storyPoint.globeState?.focusLongitude {
+                state.focusLongitude = focusLongitude
+            }
+            if storyPoint.id == lastStoryPointID {
+                break
+            }
+        }
+        return state
+    }
 }

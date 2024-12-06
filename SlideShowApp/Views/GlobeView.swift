@@ -27,30 +27,29 @@ struct GlobeView: View {
             globeEntity?.isEnabled = false
         } update: { _ in // synchronous on MainActor
             globeEntity?.isEnabled = (appModel.selectedStoryPointID != nil)
-            updateGlobeTransformation()
+            try? updateGlobeTransformation()
         }.onChange(of: appModel.selectedStoryPoint) {
             globeEntity?.isEnabled = (appModel.selectedStoryPointID != nil)
-            updateGlobeTransformation()
+            try? updateGlobeTransformation()
         }
     }
     
-    private func updateGlobeTransformation() {
-        if let globeState = appModel.selectedStoryPoint?.globeState {
-            let orientation: simd_quatf?
-            if let xyz = globeState.latLonToXYZ(radius: 0.2) {
-                print(xyz)
-                orientation = globeEntity?.orient(to: xyz)
-            } else {
-                orientation = nil
-            }
-            
-            globeEntity?.animateTransform(
-                scale: globeState.scale,
-                orientation: orientation,
-                position: globeState.position,
-                duration: 2
-            )
+    private func updateGlobeTransformation() throws {
+        let globeState = try appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)
+        let orientation: simd_quatf?
+        if let xyz = globeState.latLonToXYZ(radius: 0.2) {
+            print(xyz)
+            orientation = globeEntity?.orient(to: xyz)
+        } else {
+            orientation = nil
         }
+        
+        globeEntity?.animateTransform(
+            scale: globeState.scale,
+            orientation: orientation,
+            position: globeState.position,
+            duration: 2
+        )
     }
     
     /// Highest possible quality for mipmap texture sampling
