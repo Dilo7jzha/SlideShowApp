@@ -75,7 +75,7 @@ struct ContentView: View {
                 .disabled(appModel.story.isEmpty)
 #else
             Button(action: deleteStoryPoint, label: { Label("Delete Story Point", systemImage: "minus")})
-                .disabled(selectedStoryPoint == nil)
+                .disabled(appModel.selectedStoryPoint == nil)
 #endif
             
 #if os(visionOS)
