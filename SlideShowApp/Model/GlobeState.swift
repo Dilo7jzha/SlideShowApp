@@ -26,17 +26,17 @@ struct GlobeState: Hashable, Codable {
         
         return (Angle(radians: lat), Angle(radians: lon))
     }
-
+    
     func latLonToXYZ(radius: Double) -> SIMD3<Float>? {
         guard let focusLatitude, let focusLongitude else { return nil }
         
         let lat = focusLatitude.radians
         let lon = focusLongitude.radians - .pi / 2 // Adjust longitude to match xyzToLatLon
-
+        
         let x = radius * cos(lat) * cos(lon)
         let y = radius * cos(lat) * sin(lon)
         let z = radius * sin(lat)
-
+        
         // Note: We swap y and z to match the coordinate system in xyzToLatLon
         return SIMD3<Float>(Float(y), Float(z), Float(x))
     }

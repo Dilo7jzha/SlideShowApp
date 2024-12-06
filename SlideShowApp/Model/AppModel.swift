@@ -20,8 +20,13 @@ class AppModel {
     
     var story: [StoryPoint] = []
     
+    /// The ID of the currently selected StoryPoint.
+    var selectedStoryPointID: StoryPoint.ID?
+    
     /// The currently selected StoryPoint.
-    var selectedStoryPoint: StoryPoint?
+    var selectedStoryPoint: StoryPoint? {
+        story.first(where: { $0.id == selectedStoryPointID })
+    }
 
     // MARK: - Error Handling
     

@@ -59,7 +59,7 @@ struct ContentView: View {
     
     @ViewBuilder
     private var navigationView: some View {
-        List(selection: Bindable(appModel).selectedStoryPoint) {
+        List(selection: Bindable(appModel).selectedStoryPointID) {
             ForEach(appModel.story) { storyPoint in
                 NavigationLink(storyPoint.name, value: storyPoint)
             }
@@ -79,7 +79,7 @@ struct ContentView: View {
             ToggleImmersiveSpaceButton()
 #else
             Button(action: deleteStoryPoint, label: { Label("Delete Story Point", systemImage: "minus") })
-                .disabled(appModel.selectedStoryPoint == nil)
+                .disabled(appModel.selectedStoryPointID == nil)
             
             Button(action: {
                 openWindow(id: AppModel.macOSGlobeViewID)
@@ -108,8 +108,8 @@ struct ContentView: View {
     
     @ViewBuilder
     private var detailView: some View {
-        if let selectedStoryPoint = appModel.selectedStoryPoint,
-           let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
+        if let selectedStoryPointID = appModel.selectedStoryPointID,
+           let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPointID }) {
             StoryPointView(storyPoint: Bindable(appModel).story[index])
         } else {
             let message = appModel.story.isEmpty ? "Add a Story Point" : "Select a Story Point"
@@ -130,7 +130,7 @@ struct ContentView: View {
         
         // Set the newly added story point as selected
         Task { @MainActor in
-            appModel.selectedStoryPoint = storyPoint // select the new story point
+            appModel.selectedStoryPointID = storyPoint.id // select the new story point
         }
         
     #if os(visionOS)
@@ -139,10 +139,8 @@ struct ContentView: View {
     }
     
     private func deleteStoryPoint() {
-        if let selectedStoryPoint = appModel.selectedStoryPoint {
-            appModel.story.removeAll(where: { $0.id == selectedStoryPoint.id })
-            appModel.selectedStoryPoint = nil
-        }
+        appModel.story.removeAll(where: { $0.id == appModel.selectedStoryPointID })
+        appModel.selectedStoryPointID = nil
     }
     
     private var jsonDocument: JSONDocument? {

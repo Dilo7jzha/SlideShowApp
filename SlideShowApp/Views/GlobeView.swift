@@ -26,10 +26,7 @@ struct GlobeView: View {
             content.add(rootEntity)
             globeEntity?.isEnabled = false
         } update: { _ in // synchronous on MainActor
-            // update is triggered when @State properties change, but apparently not when @Environment properties change
-        }
-        .onChange(of: appModel.selectedStoryPoint) {
-            globeEntity?.isEnabled = (appModel.selectedStoryPoint != nil)
+            globeEntity?.isEnabled = (appModel.selectedStoryPointID != nil)
             updateGlobeTransformation()
         }
     }
