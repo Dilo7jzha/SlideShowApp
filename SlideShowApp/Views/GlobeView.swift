@@ -60,7 +60,7 @@ class GlobeModel: ObservableObject {
         }
     }
 
-    func addGlobe(to content: RealityViewCameraContent) {
+    func addGlobe(to content: any RealityViewContentProtocol) {
         content.add(globeEntity) // Adds the globe to RealityView
     }
 
