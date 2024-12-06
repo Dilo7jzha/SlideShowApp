@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-#if os(iOS)
+#if os(visionOS)
     @State private var editMode = EditMode.inactive
 #endif
     
@@ -66,7 +66,7 @@ struct ContentView: View {
         .listStyle(.sidebar)
         .navigationTitle("Story Points")
         .toolbar {
-#if os(iOS)
+#if os(visionOS)
             EditButton()
                 .disabled(appModel.story.isEmpty)
                 .labelStyle(.iconOnly)
@@ -78,7 +78,7 @@ struct ContentView: View {
                 Label(showGlobe ? "Hide Globe" : "Show Globe", systemImage: "globe")
             }
         }
-#if os(iOS)
+#if os(visionOS)
         .environment(\.editMode, $editMode)
 #endif
     }
@@ -130,7 +130,7 @@ struct ContentView: View {
             selectedStoryPoint = storyPoint // select the new story point
         }
         
-    #if os(iOS)
+    #if os(visionOS)
         editMode = .inactive
     #endif
     }
