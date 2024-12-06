@@ -50,7 +50,7 @@ struct ToggleImmersiveSpaceButton: View {
                 }
             }
         } label: {
-            Label(appModel.immersiveSpaceState == .open ? "Hide Globe" : "Show Globe", systemImage: "Globe")
+            Label(appModel.immersiveSpaceState == .open ? "Hide Globe" : "Show Globe", systemImage: "globe")
         }
         .disabled(appModel.immersiveSpaceState == .inTransition)
         .animation(.none, value: 0)

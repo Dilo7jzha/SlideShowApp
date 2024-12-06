@@ -15,12 +15,18 @@ struct GlobeState: Hashable, Codable {
     var focusLongitude: Angle? = nil
     var scale: Float? = nil
     
-    var orientation: simd_quatf? {
+    func orientation(globeCenter: SIMD3<Float>) -> simd_quatf? {
 #warning("Radius")
         let radius = 0.2
+        
+#if os(visionOS)
+        guard let cameraPosition = CameraTracker.shared.position else { return nil }
+        let globeToCamera = cameraPosition - globeCenter
+#else
         let globeToCamera: SIMD3<Float> = [0, 0, 1]
+#endif
         guard let xyz = latLonToXYZ(radius: radius) else { return nil }
-        let orientation = simd_quatf(from: normalize(xyz), to: globeToCamera)
+        let orientation = simd_quatf(from: normalize(xyz), to:  normalize(globeToCamera))
 #warning("The globe is not generally north-oriented, and the following does not work")
 //        return GlobeEntity.orientToNorth(orientation: orientation)
         return orientation

@@ -10,21 +10,25 @@ import RealityKit
 
 struct GlobeView: View {
     @Environment(AppModel.self) private var appModel
-
-    private let rootEntity = Entity()
     @State private var globeEntity: GlobeEntity? = nil
+    private let rootEntity = Entity()
     
     var body: some View {
         RealityView { content in // async on MainActor
+#if os(visionOS)
+            rootEntity.position = [0, 1, -0.5]
+#else
             rootEntity.position = [0, 0, 0]
+#endif
             do {
                 globeEntity = try await GlobeEntity(globe: appModel.globe)
             } catch {
-                print("Failed to load texture: \(error.localizedDescription)")
+                appModel.errorToShowInAlert = error
             }
             globeEntity?.setParent(rootEntity)
             content.add(rootEntity)
             globeEntity?.isEnabled = false
+            try? updateGlobeTransformation()
         } update: { _ in // synchronous on MainActor
         }
         .onChange(of: appModel.selectedStoryPoint) {
@@ -34,10 +38,13 @@ struct GlobeView: View {
     }
     
     private func updateGlobeTransformation() throws {
+        guard let globeEntity else { return }
         let globeState = try appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)
-        globeEntity?.animateTransform(
+        let orientation = globeState.orientation(globeCenter: globeEntity.position)
+        
+        globeEntity.animateTransform(
             scale: globeState.scale,
-            orientation: globeState.orientation,
+            orientation: orientation,
             position: globeState.position,
             duration: 2
         )

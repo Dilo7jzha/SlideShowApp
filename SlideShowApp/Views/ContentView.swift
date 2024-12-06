@@ -62,7 +62,7 @@ struct ContentView: View {
     private var navigationView: some View {
         List(selection: Bindable(appModel).selectedStoryPointID) {
             ForEach(appModel.story.storyPoints) { storyPoint in
-                NavigationLink(storyPoint.name, value: storyPoint)
+                Text(storyPoint.name)
             }
             .onDelete { appModel.story.storyPoints.remove(atOffsets: $0) }
             .onMove { appModel.story.storyPoints.move(fromOffsets: $0, toOffset: $1) }
@@ -76,7 +76,7 @@ struct ContentView: View {
 
 #if os(visionOS)
             EditButton()
-                .disabled(appModel.story.isEmpty)
+                .disabled(!appModel.story.hasStoryPoints)
             ToggleImmersiveSpaceButton()
 #else
             Button(action: deleteStoryPoint, label: { Label("Delete Story Point", systemImage: "minus") })
