@@ -13,7 +13,6 @@ struct ContentView: View {
 #endif
     
     @Environment(AppModel.self) private var appModel
-    @State private var selectedStoryPoint: StoryPoint? // Tracks the currently selected StoryPoint
     @State private var showExportJSON = false // true when the story points are to be exported to a JSON file
     @State private var showImportJSON = false // true when the story points are to be imported from a JSON file
     @State private var showGlobe = false // Toggles the visibility of the globe view
@@ -56,7 +55,7 @@ struct ContentView: View {
     
     @ViewBuilder
     private var navigationView: some View {
-        List(selection: $selectedStoryPoint) {
+        List(selection: Bindable(appModel).selectedStoryPoint) {
             ForEach(appModel.story) { storyPoint in
                 NavigationLink(storyPoint.name, value: storyPoint)
             }
@@ -70,6 +69,7 @@ struct ContentView: View {
             Button(action: addStoryPoint) {
                 Label("Add Story Point", systemImage: "plus")
             }
+
 #if os(visionOS)
             EditButton()
                 .disabled(appModel.story.isEmpty)
@@ -104,10 +104,10 @@ struct ContentView: View {
     
     @ViewBuilder
     private var detailView: some View {
-        if showGlobe, let selectedStoryPoint {
+        if showGlobe, let selectedStoryPoint = appModel.selectedStoryPoint {
             // Pass the globeState directly as optional
             GlobeView(globeState: selectedStoryPoint.globeState)
-        } else if let selectedStoryPoint,
+        } else if let selectedStoryPoint = appModel.selectedStoryPoint,
                   let index = appModel.story.firstIndex(where: { $0.id == selectedStoryPoint.id }) {
             StoryPointView(storyPoint: Bindable(appModel).story[index])
         } else {
@@ -131,7 +131,7 @@ struct ContentView: View {
         
         // Set the newly added story point as selected
         Task { @MainActor in
-            selectedStoryPoint = storyPoint // select the new story point
+            appModel.selectedStoryPoint = storyPoint // select the new story point
         }
         
     #if os(visionOS)
@@ -140,9 +140,9 @@ struct ContentView: View {
     }
     
     private func deleteStoryPoint() {
-        if let selectedStoryPoint {
+        if let selectedStoryPoint = appModel.selectedStoryPoint {
             appModel.story.removeAll(where: { $0.id == selectedStoryPoint.id })
-            self.selectedStoryPoint = nil
+            appModel.selectedStoryPoint = nil
         }
     }
     

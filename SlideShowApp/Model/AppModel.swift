@@ -11,7 +11,16 @@ import SwiftUI
 @MainActor
 @Observable
 class AppModel {
+    
+    // MARK: - Story
+    
     var story: [StoryPoint] = []
+    
+    /// The currently selected StoryPoint.
+    var selectedStoryPoint: StoryPoint?
+
+    // MARK: - Error Handling
+    
     var errorToShowInAlert: Error? = nil {
         didSet {
             if let errorToShowInAlert {
