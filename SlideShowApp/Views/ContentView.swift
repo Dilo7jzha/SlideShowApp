@@ -81,10 +81,10 @@ struct ContentView: View {
 #else
             Button(action: deleteStoryPoint, label: { Label("Delete Story Point", systemImage: "minus") })
                 .disabled(appModel.selectedStoryPoint == nil)
+            
             Button(action: {
                 openWindow(id: AppModel.macOSGlobeViewID)
             }, label: { Label("Globe", systemImage: "globe") })
-                .disabled(appModel.story.isEmpty)
 #endif
         }
 #if os(visionOS)

@@ -31,9 +31,10 @@ struct SlideShowApp: App {
         }
         .immersionStyle(selection: .constant(.mixed), in: .mixed)
 #else
-        WindowGroup(id: AppModel.macOSGlobeViewID) {
+        Window("Globe Preview", id: AppModel.macOSGlobeViewID) {
             GlobeView()
                 .environment(appModel)
+                .frame(minWidth: 300, minHeight: 300)
         }
         .windowResizability(.contentSize) // window resizability is derived from window content
 #endif
