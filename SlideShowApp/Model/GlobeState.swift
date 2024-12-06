@@ -15,6 +15,17 @@ struct GlobeState: Hashable, Codable {
     var focusLongitude: Angle? = nil
     var scale: Float? = nil
     
+    var orientation: simd_quatf? {
+#warning("Radius")
+        let radius = 0.2
+        let globeToCamera: SIMD3<Float> = [0, 0, 1]
+        guard let xyz = latLonToXYZ(radius: radius) else { return nil }
+        let orientation = simd_quatf(from: normalize(xyz), to: globeToCamera)
+#warning("The globe is not generally north-oriented, and the following does not work")
+//        return GlobeEntity.orientToNorth(orientation: orientation)
+        return orientation
+    }
+    
     static func xyzToLatLon(xyz: SIMD3<Float>) -> (latitude: Angle, longitude: Angle) {
         let x = Double(xyz.z)
         let y = Double(xyz.x)

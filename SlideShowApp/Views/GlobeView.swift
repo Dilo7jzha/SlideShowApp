@@ -26,9 +26,8 @@ struct GlobeView: View {
             content.add(rootEntity)
             globeEntity?.isEnabled = false
         } update: { _ in // synchronous on MainActor
-            globeEntity?.isEnabled = (appModel.selectedStoryPointID != nil)
-            try? updateGlobeTransformation()
-        }.onChange(of: appModel.selectedStoryPoint) {
+        }
+        .onChange(of: appModel.selectedStoryPoint) {
             globeEntity?.isEnabled = (appModel.selectedStoryPointID != nil)
             try? updateGlobeTransformation()
         }
@@ -36,17 +35,9 @@ struct GlobeView: View {
     
     private func updateGlobeTransformation() throws {
         let globeState = try appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)
-        let orientation: simd_quatf?
-        if let xyz = globeState.latLonToXYZ(radius: 0.2) {
-            print(xyz)
-            orientation = globeEntity?.orient(to: xyz)
-        } else {
-            orientation = nil
-        }
-        
         globeEntity?.animateTransform(
             scale: globeState.scale,
-            orientation: orientation,
+            orientation: globeState.orientation,
             position: globeState.position,
             duration: 2
         )
