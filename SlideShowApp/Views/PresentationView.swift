@@ -1,15 +1,9 @@
-//
-//  PresentationView.swift
-//  SlideShowApp
-//
-//  Created by D'Angelo Zhang on 12/12/2024.
-//
-
 import SwiftUI
 
 struct PresentationView: View {
     let storyPoints: [StoryPoint]
     @State private var currentIndex = 0
+    @Environment(\.presentationMode) private var presentationMode
 
     var body: some View {
         VStack {
@@ -22,6 +16,7 @@ struct PresentationView: View {
                     .padding()
             }
 
+            // Navigation Buttons
             HStack {
                 Button("Previous") {
                     if currentIndex > 0 {
@@ -40,13 +35,17 @@ struct PresentationView: View {
                 .disabled(currentIndex >= storyPoints.count - 1)
             }
             .padding()
+
+            // Return and End Presentation Buttons
+            HStack {
+                Button("Return") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .padding()
         }
         .navigationTitle("Presentation")
-        .toolbar {
-            Button("End Presentation") {
-                currentIndex = 0
-            }
-        }
     }
 }
 

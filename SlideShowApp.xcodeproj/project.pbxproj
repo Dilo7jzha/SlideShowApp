@@ -7,12 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7D60D7FC2CF559B200D7C8AD /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 7D60D7FB2CF559B200D7C8AD /* RealityKitContent */; };
+		B836410D2D0B317D00E64C5E /* RealityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B836410C2D0B317D00E64C5E /* RealityKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		7D60D7F62CF559B200D7C8AD /* SlideShowApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SlideShowApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D60D7FA2CF559B200D7C8AD /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		B836410C2D0B317D00E64C5E /* RealityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealityKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk/System/Library/Frameworks/RealityKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -41,7 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7D60D7FC2CF559B200D7C8AD /* RealityKitContent in Frameworks */,
+				B836410D2D0B317D00E64C5E /* RealityKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,6 +54,7 @@
 			children = (
 				7D60D7F82CF559B200D7C8AD /* SlideShowApp */,
 				7D60D7F92CF559B200D7C8AD /* Packages */,
+				B836410B2D0B317D00E64C5E /* Frameworks */,
 				7D60D7F72CF559B200D7C8AD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -71,6 +73,14 @@
 				7D60D7FA2CF559B200D7C8AD /* RealityKitContent */,
 			);
 			path = Packages;
+			sourceTree = "<group>";
+		};
+		B836410B2D0B317D00E64C5E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B836410C2D0B317D00E64C5E /* RealityKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -93,7 +103,6 @@
 			);
 			name = SlideShowApp;
 			packageProductDependencies = (
-				7D60D7FB2CF559B200D7C8AD /* RealityKitContent */,
 			);
 			productName = SlideShowApp;
 			productReference = 7D60D7F62CF559B200D7C8AD /* SlideShowApp.app */;
@@ -162,7 +171,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SlideShowApp/Preview Content\"";
-				DEVELOPMENT_TEAM = L8FKNLG3XM;
+				DEVELOPMENT_TEAM = TZDVL8LSYT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
@@ -191,7 +200,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SlideShowApp/Preview Content\"";
-				DEVELOPMENT_TEAM = L8FKNLG3XM;
+				DEVELOPMENT_TEAM = TZDVL8LSYT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
@@ -353,13 +362,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		7D60D7FB2CF559B200D7C8AD /* RealityKitContent */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = RealityKitContent;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7D60D7EE2CF559B200D7C8AD /* Project object */;
 }

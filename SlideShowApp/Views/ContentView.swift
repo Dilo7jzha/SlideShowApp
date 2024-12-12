@@ -105,8 +105,11 @@ struct ContentView: View {
                 showImportJSON.toggle()
             }
             
-            Button("Start Presentation") {
+            Button(action: {
                 isPresenting.toggle()
+            }) {
+                Image(systemName: "play.circle")
+                    .font(.largeTitle)
             }
             .disabled(!appModel.story.hasStoryPoints)
         }
