@@ -20,6 +20,8 @@ class AppModel {
     
     var story = Story()
     
+    var isPresenting: Bool = false
+    
     /// The ID of the currently selected StoryPoint.
     var selectedStoryPointID: StoryPoint.ID?
     

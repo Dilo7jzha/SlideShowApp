@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct SlideView: View {
-    @Environment(AppModel.self) private var appModel
     @Binding var slide: Slide?
     @State private var showImageImporter = false
+    var isEditable: Bool = true // Controls whether editing features (text and image) are enabled
 
     var body: some View {
         VStack {
+            // Show the image or placeholder text
             if let imageView {
                 imageView
                     .resizable()
@@ -26,31 +27,43 @@ struct SlideView: View {
                     .padding()
             }
             
-            TextEditor(text: textBinding)
-                .font(.title)
-                .padding()
-                .border(Color.gray, width: 1)
-            
-            Button(action: {
-                showImageImporter = true
-            }) {
-                Label("Add Image", systemImage: "photo")
-            }
-            .fileImporter(isPresented: $showImageImporter, allowedContentTypes: [.image]) { result in
-                switch result {
-                case .success(let url):
-                    do {
-                        guard url.startAccessingSecurityScopedResource() else {
-                            throw error("Cannot access file.")
-                        }
-                        defer { url.stopAccessingSecurityScopedResource() }
-                        slide?.image = try CodableImage(url: url)
-                    } catch {
-                        appModel.errorToShowInAlert = error
-                    }
-                case .failure(let error):
-                    appModel.errorToShowInAlert = error
+            // Add Image button is shown only if editing is enabled
+            if isEditable {
+                Button(action: {
+                    showImageImporter = true
+                }) {
+                    Label("Add Image", systemImage: "photo")
                 }
+                .fileImporter(isPresented: $showImageImporter, allowedContentTypes: [.image]) { result in
+                    switch result {
+                    case .success(let url):
+                        do {
+                            guard url.startAccessingSecurityScopedResource() else {
+                                throw error("Cannot access file.")
+                            }
+                            defer { url.stopAccessingSecurityScopedResource() }
+                            slide?.image = try CodableImage(url: url)
+                        } catch {
+                            print("Error adding image: \(error.localizedDescription)")
+                        }
+                    case .failure(let error):
+                        print("Error selecting file: \(error.localizedDescription)")
+                    }
+                }
+            }
+
+            // Text view is editable only if editing is enabled
+            if isEditable {
+                TextEditor(text: textBinding)
+                    .font(.title)
+                    .padding()
+                    .border(Color.gray, width: 1)
+            } else {
+                Text(slide?.text ?? "No text available")
+                    .font(.title)
+                    .padding()
+                    .border(Color.gray, width: 1)
+                    .foregroundColor(.secondary)
             }
         }
     }
@@ -66,21 +79,7 @@ struct SlideView: View {
     
     private var textBinding: Binding<String> {
         Binding<String>(
-            get: { slide?.text ?? ""  },
+            get: { slide?.text ?? "" },
             set: { slide?.text = $0 })
     }
-    
-    private var imageBinding: Binding<PlatformImage?> {
-        Binding<PlatformImage?>(
-            get: { slide?.image?.image },
-            
-            set: { newImage in
-                if let newImage {
-                    slide?.image = CodableImage(image: newImage)
-                } else {
-                    slide?.image = nil
-                }
-            })
-    }
 }
-

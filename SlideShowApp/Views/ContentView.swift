@@ -20,6 +20,7 @@ struct ContentView: View {
     
     @State private var showExportJSON = false // true when the story points are to be exported to a JSON file
     @State private var showImportJSON = false // true when the story points are to be imported from a JSON file
+    @State private var isPresenting = false
     
     var body: some View {
         NavigationSplitView {
@@ -103,8 +104,16 @@ struct ContentView: View {
             Button("Import") {
                 showImportJSON.toggle()
             }
+            
+            Button("Start Presentation") {
+                isPresenting.toggle()
+            }
+            .disabled(!appModel.story.hasStoryPoints)
         }
         .padding()
+        .sheet(isPresented: $isPresenting) {
+            PresentationView(storyPoints: appModel.story.storyPoints)
+        }
     }
     
     @ViewBuilder
