@@ -16,9 +16,7 @@ struct GlobeView: View {
     var body: some View {
         RealityView { content in // async on MainActor
 #if os(visionOS)
-            rootEntity.position = [0, 1, -0.5]
-#else
-            rootEntity.position = [0, 0, 0]
+            rootEntity.position = [0, 1, -0.8]
 #endif
             do {
                 globeEntity = try await GlobeEntity(globe: appModel.globe)
@@ -27,12 +25,10 @@ struct GlobeView: View {
             }
             globeEntity?.setParent(rootEntity)
             content.add(rootEntity)
-            globeEntity?.isEnabled = false
             try? updateGlobeTransformation()
         } update: { _ in // synchronous on MainActor
         }
         .onChange(of: appModel.selectedStoryPoint) {
-            globeEntity?.isEnabled = (appModel.selectedStoryPointID != nil)
             try? updateGlobeTransformation()
         }
     }
