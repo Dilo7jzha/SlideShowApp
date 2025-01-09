@@ -49,14 +49,4 @@ struct GlobeView: View {
             duration: 2
         )
     }
-    
-    /// Highest possible quality for mipmap texture sampling
-    private static var highQualityTextureSampler: MaterialParameters.Texture.Sampler {
-        let samplerDescription = MTLSamplerDescriptor()
-        samplerDescription.maxAnisotropy = 16 // 16 is maximum number of samples for anisotropic filtering (default is 1)
-        samplerDescription.minFilter = MTLSamplerMinMagFilter.linear // linear filtering (instead of nearest) when texture pixels are larger than rendered pixels
-        samplerDescription.magFilter = MTLSamplerMinMagFilter.linear // linear filtering (instead of nearest) when texture pixels are smaller than rendered pixels
-        samplerDescription.mipFilter = MTLSamplerMipFilter.linear // linear interpolation between mipmap levels
-        return MaterialParameters.Texture.Sampler(samplerDescription)
-    }
 }
