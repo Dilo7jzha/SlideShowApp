@@ -147,7 +147,13 @@ struct GlobeStateView: View {
     private var focusLongitudeBinding: Binding<Double> {
         Binding<Double>(
             get: { globeState?.focusLongitude?.degrees ?? 0 },
-            set: { globeState?.focusLongitude = Angle(degrees: $0) })
+            set: { newLongitude in
+                if globeState?.focusLongitude?.degrees != newLongitude {
+                    Task { @MainActor in
+                        globeState?.focusLongitude = Angle(degrees: newLongitude)
+                    }
+                }
+            })
     }
     
     private var useScaleBinding: Binding<Bool> {

@@ -10,8 +10,12 @@ import SwiftUI
 @main
 struct SlideShowApp: App {
     @State private var appModel = AppModel()
-    
 #if os(visionOS)
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+#endif
+    
+#if os(visionOS) || os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 #else
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -20,23 +24,30 @@ struct SlideShowApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+#if os(visionOS)
+                .onAppear {
+                    Task { @MainActor in
+                        await appModel.openImmersiveSpace(with: openImmersiveSpace)
+                    }
+                }
+#endif
                 .environment(appModel)
         }
         .windowResizability(.contentSize) // window resizability is derived from window content
         
 #if os(visionOS)
-        ImmersiveSpace(id: appModel.immersiveSpaceID) {
+        ImmersiveSpace(id: AppModel.immersiveSpaceID) {
             GlobeView()
-                .environment(appModel)
                 .onAppear {
                     appModel.immersiveSpaceState = .open
                 }
                 .onDisappear {
                     appModel.immersiveSpaceState = .closed
                 }
+                .environment(appModel)
         }
         .immersionStyle(selection: .constant(.mixed), in: .mixed)
-#else
+#elseif os(macOS)
         Window("Globe Preview", id: AppModel.macOSGlobeViewID) {
             GlobeView()
                 .environment(appModel)
@@ -50,23 +61,20 @@ struct SlideShowApp: App {
 #if os(visionOS)
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        
-        // register custom components and systems
-        RotationComponent.registerComponent()
-        RotationSystem.registerSystem()
-        
-        // start camera tracking
+        registerComponentsAndSystems()
         CameraTracker.start()
-        
         return true
     }
 }
 #else
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // register custom components and systems
-        RotationComponent.registerComponent()
-        RotationSystem.registerSystem()
+        registerComponentsAndSystems()
     }
 }
 #endif
+
+func registerComponentsAndSystems() {
+    RotationComponent.registerComponent()
+    RotationSystem.registerSystem()
+}

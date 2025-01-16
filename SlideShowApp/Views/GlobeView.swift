@@ -16,9 +16,7 @@ struct GlobeView: View {
     var body: some View {
         RealityView { content in // async on MainActor
 #if os(visionOS)
-            rootEntity.position = [0, 1, -0.5]
-#else
-            rootEntity.position = [0, 0, 0]
+            rootEntity.position = [0, 1, -0.8]
 #endif
             do {
                 globeEntity = try await GlobeEntity(globe: appModel.globe)
@@ -27,12 +25,10 @@ struct GlobeView: View {
             }
             globeEntity?.setParent(rootEntity)
             content.add(rootEntity)
-            globeEntity?.isEnabled = false
             try? updateGlobeTransformation()
         } update: { _ in // synchronous on MainActor
         }
         .onChange(of: appModel.selectedStoryPoint) {
-            globeEntity?.isEnabled = (appModel.selectedStoryPointID != nil)
             try? updateGlobeTransformation()
         }
     }
@@ -48,15 +44,5 @@ struct GlobeView: View {
             position: globeState.position,
             duration: 2
         )
-    }
-    
-    /// Highest possible quality for mipmap texture sampling
-    private static var highQualityTextureSampler: MaterialParameters.Texture.Sampler {
-        let samplerDescription = MTLSamplerDescriptor()
-        samplerDescription.maxAnisotropy = 16 // 16 is maximum number of samples for anisotropic filtering (default is 1)
-        samplerDescription.minFilter = MTLSamplerMinMagFilter.linear // linear filtering (instead of nearest) when texture pixels are larger than rendered pixels
-        samplerDescription.magFilter = MTLSamplerMinMagFilter.linear // linear filtering (instead of nearest) when texture pixels are smaller than rendered pixels
-        samplerDescription.mipFilter = MTLSamplerMipFilter.linear // linear interpolation between mipmap levels
-        return MaterialParameters.Texture.Sampler(samplerDescription)
     }
 }
