@@ -26,6 +26,10 @@ struct GlobeView: View {
             globeEntity?.setParent(rootEntity)
             content.add(rootEntity)
             try? updateGlobeTransformation()
+            // Add annotation attachment
+            if let annotationEntity = createAnnotationEntity() {
+                globeEntity?.addChild(annotationEntity)
+            }
         } update: { _ in // synchronous on MainActor
         }
         .onChange(of: appModel.selectedStoryPoint) {
@@ -44,5 +48,21 @@ struct GlobeView: View {
             position: globeState.position,
             duration: 2
         )
+    }
+    
+    // Function to create an annotation entity
+    private func createAnnotationEntity() -> Entity? {
+        guard let globeState = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState,
+                let annotationX = globeState.annotationX,
+                let annotationY = globeState.annotationY,
+                let annotationZ = globeState.annotationZ else {
+            return nil
+        }
+
+        let annotationEntity = ModelEntity(mesh: .generateSphere(radius: 0.02), materials: [SimpleMaterial(color: .red, isMetallic: false)])
+        annotationEntity.position = [annotationX, annotationY, annotationZ]
+        annotationEntity.components.set(BillboardComponent()) // Makes it always face the camera
+
+        return annotationEntity
     }
 }

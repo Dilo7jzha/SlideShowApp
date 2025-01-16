@@ -67,6 +67,35 @@ struct GlobeStateView: View {
                         .fixedSize()
                 })
             }
+            
+            Section("Add Annotation") {
+                Toggle(isOn: useAnnotationBinding) { Text("Enable Annotation") }
+
+                Grid(alignment: .leading) {
+                    GridRow {
+                        Text("X")
+                        TextField("X", value: annotationXBinding, formatter: formatter(min: -1, max: 1))
+                            .modifier(NumberField())
+                        Slider(value: annotationXBinding, in: -1...1)
+                            .labelsHidden()
+                    }
+                    GridRow {
+                        Text("Y")
+                        TextField("Y", value: annotationYBinding, formatter: formatter(min: -1, max: 1))
+                            .modifier(NumberField())
+                        Slider(value: annotationYBinding, in: -1...1)
+                            .labelsHidden()
+                    }
+                    GridRow {
+                        Text("Z")
+                        TextField("Z", value: annotationZBinding, formatter: formatter(min: -1, max: 1))
+                            .modifier(NumberField())
+                        Slider(value: annotationZBinding, in: -1...1)
+                            .labelsHidden()
+                    }
+                }
+            }
+//            .disabled(!addAnnotation)
         }
         .formStyle(.grouped) // grouped required for macOS
         .frame(minWidth: 400)
@@ -117,6 +146,10 @@ struct GlobeStateView: View {
     private var rotateToFocusPoint: Bool {
         globeState?.focusLatitude != nil
     }
+    
+//    private var addAnnotation: Bool {
+//        globeState?.annotationX != nil
+//    }
     
     private var useFocusPointBinding: Binding<Bool> {
         Binding<Bool>(
@@ -172,6 +205,40 @@ struct GlobeStateView: View {
         Binding<Float>(
             get: { globeState?.scale ?? 1 },
             set: { globeState?.scale = $0 })
+    }
+    // binding for annotation configs
+    private var useAnnotationBinding: Binding<Bool> {
+        Binding<Bool>(
+            get: { globeState?.annotationX != nil && globeState?.annotationY != nil && globeState?.annotationZ != nil },
+            set: {
+                if !$0 {
+                    globeState?.annotationX = nil
+                    globeState?.annotationY = nil
+                    globeState?.annotationZ = nil
+                } else if globeState?.annotationX == nil {
+                    globeState?.annotationX = 0
+                    globeState?.annotationY = 0
+                    globeState?.annotationZ = 0
+                }
+            })
+    }
+
+    private var annotationXBinding: Binding<Float> {
+        Binding<Float>(
+            get: { globeState?.annotationX ?? 0 },
+            set: { globeState?.annotationX = $0 })
+    }
+
+    private var annotationYBinding: Binding<Float> {
+        Binding<Float>(
+            get: { globeState?.annotationY ?? 0 },
+            set: { globeState?.annotationY = $0 })
+    }
+
+    private var annotationZBinding: Binding<Float> {
+        Binding<Float>(
+            get: { globeState?.annotationZ ?? 0 },
+            set: { globeState?.annotationZ = $0 })
     }
 }
 
