@@ -11,6 +11,7 @@ import RealityKit
 struct GlobeView: View {
     @Environment(AppModel.self) private var appModel
     @State private var globeEntity: GlobeEntity? = nil
+    @State private var annotationEntity: Entity? = nil
     private let rootEntity = Entity()
     
     var body: some View {
@@ -26,43 +27,47 @@ struct GlobeView: View {
             globeEntity?.setParent(rootEntity)
             content.add(rootEntity)
             try? updateGlobeTransformation()
+            
             // Add annotation attachment
-            if let annotationEntity = createAnnotationEntity() {
+            createAnnotationEntity()
+            if let annotationEntity {
                 globeEntity?.addChild(annotationEntity)
             }
+            updateAnnotationPosition()
+            
         } update: { _ in // synchronous on MainActor
         }
         .onChange(of: appModel.selectedStoryPoint) {
             try? updateGlobeTransformation()
+            updateAnnotationPosition()
         }
     }
     
     private func updateGlobeTransformation() throws {
         guard let globeEntity else { return }
-        let globeState = try appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)
-        let orientation = globeState.orientation(globeCenter: globeEntity.position)
+        let accumulatedGlobeState = try appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)
+        let orientation = accumulatedGlobeState.orientation(globeCenter: globeEntity.position)
         
         globeEntity.animateTransform(
-            scale: globeState.scale,
+            scale: accumulatedGlobeState.scale,
             orientation: orientation,
-            position: globeState.position,
+            position: accumulatedGlobeState.position,
             duration: 2
         )
     }
     
-    // Function to create an annotation entity
-    private func createAnnotationEntity() -> Entity? {
-        guard let globeState = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState,
-                let annotationX = globeState.annotationX,
-                let annotationY = globeState.annotationY,
-                let annotationZ = globeState.annotationZ else {
-            return nil
-        }
-
-        let annotationEntity = ModelEntity(mesh: .generateSphere(radius: 0.02), materials: [SimpleMaterial(color: .red, isMetallic: false)])
-        annotationEntity.position = [annotationX, annotationY, annotationZ]
-        annotationEntity.components.set(BillboardComponent()) // Makes it always face the camera
-
-        return annotationEntity
+    private func updateAnnotationPosition() {
+        guard let storyPointGlobeState = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState else { return }
+        annotationEntity?.isEnabled = (storyPointGlobeState.annotationPosition != nil)
+        guard let annotationEntity, let annotationPosition = storyPointGlobeState.annotationPosition else { return }
+        var transform = annotationEntity.transform
+        transform.translation = annotationPosition
+        annotationEntity.move(to: transform, relativeTo: annotationEntity.parent, duration: 1)
+    }
+    
+    /// Create an annotation entity
+    private func createAnnotationEntity() {
+        annotationEntity = ModelEntity(mesh: .generateSphere(radius: 0.02), materials: [SimpleMaterial(color: .red, isMetallic: false)])
+        annotationEntity?.components.set(BillboardComponent()) // Makes it always face the camera
     }
 }

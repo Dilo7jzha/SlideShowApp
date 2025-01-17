@@ -45,7 +45,13 @@ struct Story: Identifiable, Codable, Hashable {
         guard storyPoint(with: lastStoryPointID) != nil else {
             throw error("StoryPoint not found.")
         }
-        var state = GlobeState(position: [0, 0, 0], focusLatitude: .zero, focusLongitude: .zero, scale: 1)
+        var state = GlobeState(
+            position: [0, 0, 0],
+            focusLatitude: .zero,
+            focusLongitude: .zero,
+            scale: 1,
+            annotationPosition: nil
+        )
         for storyPoint in storyPoints {
             if let position = storyPoint.globeState?.position {
                 state.position = position
@@ -59,9 +65,12 @@ struct Story: Identifiable, Codable, Hashable {
             if let focusLongitude = storyPoint.globeState?.focusLongitude {
                 state.focusLongitude = focusLongitude
             }
+            if let annotationPosition = storyPoint.globeState?.annotationPosition {
+                state.annotationPosition = annotationPosition
+            }
             if storyPoint.id == lastStoryPointID {
                 break
-            }
+            }            
         }
         return state
     }

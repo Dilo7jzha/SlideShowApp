@@ -94,8 +94,8 @@ struct GlobeStateView: View {
                             .labelsHidden()
                     }
                 }
+                .disabled(globeState?.annotationPosition == nil)
             }
-//            .disabled(!addAnnotation)
         }
         .formStyle(.grouped) // grouped required for macOS
         .frame(minWidth: 400)
@@ -146,11 +146,7 @@ struct GlobeStateView: View {
     private var rotateToFocusPoint: Bool {
         globeState?.focusLatitude != nil
     }
-    
-//    private var addAnnotation: Bool {
-//        globeState?.annotationX != nil
-//    }
-    
+
     private var useFocusPointBinding: Binding<Bool> {
         Binding<Bool>(
             get: { rotateToFocusPoint },
@@ -209,36 +205,26 @@ struct GlobeStateView: View {
     // binding for annotation configs
     private var useAnnotationBinding: Binding<Bool> {
         Binding<Bool>(
-            get: { globeState?.annotationX != nil && globeState?.annotationY != nil && globeState?.annotationZ != nil },
-            set: {
-                if !$0 {
-                    globeState?.annotationX = nil
-                    globeState?.annotationY = nil
-                    globeState?.annotationZ = nil
-                } else if globeState?.annotationX == nil {
-                    globeState?.annotationX = 0
-                    globeState?.annotationY = 0
-                    globeState?.annotationZ = 0
-                }
-            })
+            get: { globeState?.annotationPosition != nil },
+            set: { globeState?.annotationPosition = $0 ? SIMD3.zero : nil })
     }
 
     private var annotationXBinding: Binding<Float> {
         Binding<Float>(
-            get: { globeState?.annotationX ?? 0 },
-            set: { globeState?.annotationX = $0 })
+            get: { globeState?.annotationPosition?.x ?? 0 },
+            set: { globeState?.annotationPosition?.x = $0 })
     }
 
     private var annotationYBinding: Binding<Float> {
         Binding<Float>(
-            get: { globeState?.annotationY ?? 0 },
-            set: { globeState?.annotationY = $0 })
+            get: { globeState?.annotationPosition?.y ?? 0 },
+            set: { globeState?.annotationPosition?.y = $0 })
     }
 
     private var annotationZBinding: Binding<Float> {
         Binding<Float>(
-            get: { globeState?.annotationZ ?? 0 },
-            set: { globeState?.annotationZ = $0 })
+            get: { globeState?.annotationPosition?.z ?? 0 },
+            set: { globeState?.annotationPosition?.z = $0 })
     }
 }
 
