@@ -29,7 +29,7 @@ struct GlobeView: View {
             try? updateGlobeTransformation()
             
             // Add annotation attachment
-            createAnnotationEntity()
+            createTextAnnotationEntity()
             if let annotationEntity {
                 globeEntity?.addChild(annotationEntity)
             }
@@ -66,8 +66,29 @@ struct GlobeView: View {
     }
     
     /// Create an annotation entity
-    private func createAnnotationEntity() {
-        annotationEntity = ModelEntity(mesh: .generateSphere(radius: 0.02), materials: [SimpleMaterial(color: .red, isMetallic: false)])
-        annotationEntity?.components.set(BillboardComponent()) // Makes it always face the camera
-    }
+    private func createTextAnnotationEntity() {
+            guard let globeState = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState,
+                  let annotationText = globeState.annotationText, !annotationText.isEmpty else {
+                annotationEntity = nil
+                return
+            }
+            
+            // Create the text mesh for annotation
+            let textEntity = Entity()
+            let textMesh = MeshResource.generateText(
+                annotationText,
+                extrusionDepth: 0.002,
+                font: .systemFont(ofSize: 0.05),
+                containerFrame: .zero,
+                alignment: .center,
+                lineBreakMode: .byWordWrapping
+            )
+            
+            let material = SimpleMaterial(color: .red, isMetallic: false)
+            let textModel = ModelEntity(mesh: textMesh, materials: [material])
+            textModel.components.set(BillboardComponent()) // Keeps text facing the camera
+            
+            textEntity.addChild(textModel)
+            annotationEntity = textEntity
+        }
 }

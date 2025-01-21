@@ -15,6 +15,7 @@ struct GlobeState: Hashable, Codable {
     var focusLongitude: Angle? = nil
     var scale: Float? = nil
     var annotationPosition: SIMD3<Float>? = nil
+    var annotationText: String? = nil
     
     func orientation(globeCenter: SIMD3<Float>) -> simd_quatf? {
 #warning("Radius")
