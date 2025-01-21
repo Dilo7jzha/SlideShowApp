@@ -57,6 +57,12 @@ struct GlobeView: View {
     }
     
     private func updateAnnotationPosition() {
+        annotationEntity?.removeFromParent()
+        createTextAnnotationEntity()
+        if let annotationEntity {
+            globeEntity?.addChild(annotationEntity)
+        }
+        
         guard let storyPointGlobeState = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState else { return }
         annotationEntity?.isEnabled = (storyPointGlobeState.annotationPosition != nil)
         guard let annotationEntity, let annotationPosition = storyPointGlobeState.annotationPosition else { return }
