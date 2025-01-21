@@ -95,7 +95,7 @@ struct GlobeStateView: View {
                     }
                 }
                 .disabled(globeState?.annotationPosition == nil)
-                TextField("Annotation Text", text: annotationTextBinding)
+                TextField("Annotation Text", text: annotationTextBinding, prompt: Text("Annotation"))
                         .textFieldStyle(.roundedBorder)
                         .disabled(globeState?.annotationPosition == nil)
             }
@@ -209,8 +209,7 @@ struct GlobeStateView: View {
     private var useAnnotationBinding: Binding<Bool> {
         Binding<Bool>(
             get: { globeState?.annotationPosition != nil },
-            set: { globeState?.annotationPosition = $0 ? SIMD3.zero : nil
-                globeState?.annotationText = "Enter annotation text"})
+            set: { globeState?.annotationPosition = $0 ? SIMD3.zero : nil })
     }
 
     private var annotationXBinding: Binding<Float> {
