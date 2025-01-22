@@ -11,7 +11,10 @@ import RealityKit
 struct GlobeView: View {
     @Environment(AppModel.self) private var appModel
     @State private var globeEntity: GlobeEntity? = nil
+    
+    /// An entity with a child entity that contains a text mesh
     @State private var annotationEntity: Entity? = nil
+    
     private let rootEntity = Entity()
     
     var body: some View {
@@ -28,18 +31,19 @@ struct GlobeView: View {
             content.add(rootEntity)
             try? updateGlobeTransformation()
             
-            // Add annotation attachment
-            createTextAnnotationEntity()
-            if let annotationEntity {
-                globeEntity?.addChild(annotationEntity)
-            }
+            // Add an empty annotation entity
+            annotationEntity = Entity()
+            globeEntity?.addChild(annotationEntity!)
+            
             updateAnnotationPosition()
+            updateAnnotationTextEntity()
             
         } update: { _ in // synchronous on MainActor
         }
         .onChange(of: appModel.selectedStoryPoint) {
             try? updateGlobeTransformation()
             updateAnnotationPosition()
+            updateAnnotationTextEntity()
         }
     }
     
@@ -56,45 +60,58 @@ struct GlobeView: View {
         )
     }
     
-    private func updateAnnotationPosition() {
-        annotationEntity?.removeFromParent()
-        createTextAnnotationEntity()
-        if let annotationEntity {
-            globeEntity?.addChild(annotationEntity)
-        }
+    private var annotationText: String? {
+        appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotationText
+    }
+    
+    private func updateAnnotationTextEntity() {
+        // the text currently shown by the text mesh in the `annotationEntity`
+        let entityAnnotationText = annotationEntity?.children.first?.components[AnnotationComponent.self]?.annotation
         
+        // the text of the model to display
+        let annotationText = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotationText
+        
+        if let annotationText {
+            if entityAnnotationText == nil || annotationText != entityAnnotationText! {
+                // there is currently no text mesh, or the text changed and the mesh needs to be recreated
+                annotationEntity?.children.removeAll()
+                let textEntity = createTextEntity(for: annotationText)
+                annotationEntity?.addChild(textEntity)
+            }
+        } else {
+            annotationEntity?.children.removeAll()
+        }
+    }
+
+    private func updateAnnotationPosition() {
         guard let storyPointGlobeState = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState else { return }
         annotationEntity?.isEnabled = (storyPointGlobeState.annotationPosition != nil)
         guard let annotationEntity, let annotationPosition = storyPointGlobeState.annotationPosition else { return }
+        guard annotationEntity.position != annotationPosition else { return }
         var transform = annotationEntity.transform
         transform.translation = annotationPosition
         annotationEntity.move(to: transform, relativeTo: annotationEntity.parent, duration: 1)
     }
     
-    /// Create an annotation entity
-    private func createTextAnnotationEntity() {
-            guard let globeState = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState,
-                  let annotationText = globeState.annotationText, !annotationText.isEmpty else {
-                annotationEntity = nil
-                return
-            }
-            
-            // Create the text mesh for annotation
-            let textEntity = Entity()
-            let textMesh = MeshResource.generateText(
-                annotationText,
-                extrusionDepth: 0.002,
-                font: .systemFont(ofSize: 0.05),
-                containerFrame: .zero,
-                alignment: .center,
-                lineBreakMode: .byWordWrapping
-            )
-            
-            let material = SimpleMaterial(color: .red, isMetallic: false)
-            let textModel = ModelEntity(mesh: textMesh, materials: [material])
-            textModel.components.set(BillboardComponent()) // Keeps text facing the camera
-            
-            textEntity.addChild(textModel)
-            annotationEntity = textEntity
-        }
+    /// Creates an entity with a text mesh, a `BillboardComponent` and an `AnnotationComponent`.
+    private func createTextEntity(for text: String) -> Entity {
+        let textMesh = MeshResource.generateText(
+            text,
+            extrusionDepth: 0.002,
+            font: .systemFont(ofSize: 0.05),
+            containerFrame: .zero,
+            alignment: .center,
+            lineBreakMode: .byWordWrapping
+        )
+        
+        let material = SimpleMaterial(color: .red, isMetallic: false)
+        let textModel = ModelEntity(mesh: textMesh, materials: [material])
+        textModel.components.set(BillboardComponent()) // Keeps text facing the camera
+        
+        // Store the annotation text with the entity, such that we can later determine whether
+        // the text changed and the mesh needs to be recreated
+        textModel.components.set(AnnotationComponent(annotation: text))
+        
+        return textModel
+    }
 }
