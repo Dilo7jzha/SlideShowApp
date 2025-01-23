@@ -9,13 +9,18 @@ import Foundation
 import RealityKit
 import SwiftUI
 
+struct Annotation: Identifiable, Codable, Hashable {
+    var id = UUID()
+    var position: SIMD3<Float> // Position of the annotation in 3D space
+    var text: String // Annotation text
+}
+
 struct GlobeState: Hashable, Codable {
     var position: SIMD3<Float>? = nil
     var focusLatitude: Angle? = nil
     var focusLongitude: Angle? = nil
     var scale: Float? = nil
-    var annotationPosition: SIMD3<Float>? = nil
-    var annotationText: String? = nil
+    var annotations: [Annotation] = []
     
     func orientation(globeCenter: SIMD3<Float>) -> simd_quatf? {
 #warning("Radius")

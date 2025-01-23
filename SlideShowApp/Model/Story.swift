@@ -50,7 +50,7 @@ struct Story: Identifiable, Codable, Hashable {
             focusLatitude: .zero,
             focusLongitude: .zero,
             scale: 1,
-            annotationPosition: nil
+            annotations: []
         )
         for storyPoint in storyPoints {
             if let position = storyPoint.globeState?.position {
@@ -65,8 +65,8 @@ struct Story: Identifiable, Codable, Hashable {
             if let focusLongitude = storyPoint.globeState?.focusLongitude {
                 state.focusLongitude = focusLongitude
             }
-            if let annotationPosition = storyPoint.globeState?.annotationPosition {
-                state.annotationPosition = annotationPosition
+            if let annotations = storyPoint.globeState?.annotations {
+                state.annotations = annotations
             }
             if storyPoint.id == lastStoryPointID {
                 break

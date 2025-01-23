@@ -4,12 +4,11 @@
 //
 //  Created by Bernhard Jenny on 26/11/2024.
 //
-
 import SwiftUI
 
 struct GlobeStateView: View {
     @Binding var globeState: GlobeState?
-    
+
     var body: some View {
         Form {
             Section("Globe Position") {
@@ -68,40 +67,42 @@ struct GlobeStateView: View {
                 })
             }
             
-            Section("Add Annotation") {
-                Toggle(isOn: useAnnotationBinding) { Text("Enable Annotation") }
 
-                Grid(alignment: .leading) {
-                    GridRow {
-                        Text("X")
-                        TextField("X", value: annotationXBinding, formatter: formatter(min: -1, max: 1))
-                            .modifier(NumberField())
-                        Slider(value: annotationXBinding, in: -1...1)
-                            .labelsHidden()
-                    }
-                    GridRow {
-                        Text("Y")
-                        TextField("Y", value: annotationYBinding, formatter: formatter(min: -1, max: 1))
-                            .modifier(NumberField())
-                        Slider(value: annotationYBinding, in: -1...1)
-                            .labelsHidden()
-                    }
-                    GridRow {
-                        Text("Z")
-                        TextField("Z", value: annotationZBinding, formatter: formatter(min: -1, max: 1))
-                            .modifier(NumberField())
-                        Slider(value: annotationZBinding, in: -1...1)
-                            .labelsHidden()
-                    }
+            Section("Annotations") {
+                Button(action: {
+                    addNewAnnotation()
+                }) {
+                    Label("Add Annotation", systemImage: "plus")
                 }
-                .disabled(globeState?.annotationPosition == nil)
-                TextField("Annotation Text", text: annotationTextBinding, prompt: Text("Annotation"))
-                        .textFieldStyle(.roundedBorder)
-                        .disabled(globeState?.annotationPosition == nil)
+                
+                ForEach(globeState?.annotations ?? []) { annotation in
+                    VStack {
+                        TextField("Annotation Text", text: annotationTextBinding(for: annotation.id))
+                            .textFieldStyle(.roundedBorder)
+                        
+                        HStack {
+                            Text("X:").bold()
+                            TextField("X", value: annotationXBinding(for: annotation.id), formatter: NumberFormatter())
+                                .modifier(NumberField())
+
+                            Text("Y:").bold()
+                            TextField("Y", value: annotationYBinding(for: annotation.id), formatter: NumberFormatter())
+                                .modifier(NumberField())
+
+                            Text("Z:").bold()
+                            TextField("Z", value: annotationZBinding(for: annotation.id), formatter: NumberFormatter())
+                                .modifier(NumberField())
+                        }
+
+                        Button(action: { removeAnnotation(id: annotation.id) }) {
+                            Label("Remove Annotation", systemImage: "trash")
+                                .foregroundColor(.red)
+                        }
+                    }
+                    .padding()
+                }
             }
         }
-        .formStyle(.grouped) // grouped required for macOS
-        .frame(minWidth: 400)
     }
     
     private func formatter(
@@ -206,34 +207,59 @@ struct GlobeStateView: View {
             set: { globeState?.scale = $0 })
     }
     // binding for annotation configs
-    private var useAnnotationBinding: Binding<Bool> {
-        Binding<Bool>(
-            get: { globeState?.annotationPosition != nil },
-            set: { globeState?.annotationPosition = $0 ? SIMD3.zero : nil })
+    private func addNewAnnotation() {
+        let newAnnotation = Annotation(position: SIMD3<Float>(0, 0, 0), text: "New Annotation")
+        globeState?.annotations.append(newAnnotation)
     }
 
-    private var annotationXBinding: Binding<Float> {
-        Binding<Float>(
-            get: { globeState?.annotationPosition?.x ?? 0 },
-            set: { globeState?.annotationPosition?.x = $0 })
+    // Function to remove an annotation
+    private func removeAnnotation(id: UUID) {
+        globeState?.annotations.removeAll { $0.id == id }
     }
 
-    private var annotationYBinding: Binding<Float> {
-        Binding<Float>(
-            get: { globeState?.annotationPosition?.y ?? 0 },
-            set: { globeState?.annotationPosition?.y = $0 })
+    // Bindings for annotation editing
+    private func annotationTextBinding(for id: UUID) -> Binding<String> {
+        Binding(
+            get: { globeState?.annotations.first { $0.id == id }?.text ?? "" },
+            set: { newValue in
+                if let index = globeState?.annotations.firstIndex(where: { $0.id == id }) {
+                    globeState?.annotations[index].text = newValue
+                }
+            }
+        )
     }
 
-    private var annotationZBinding: Binding<Float> {
-        Binding<Float>(
-            get: { globeState?.annotationPosition?.z ?? 0 },
-            set: { globeState?.annotationPosition?.z = $0 })
+    private func annotationXBinding(for id: UUID) -> Binding<Float> {
+        Binding(
+            get: { globeState?.annotations.first { $0.id == id }?.position.x ?? 0 },
+            set: { newValue in
+                if let index = globeState?.annotations.firstIndex(where: { $0.id == id }) {
+                    globeState?.annotations[index].position.x = newValue
+                }
+            }
+        )
     }
-    
-    private var annotationTextBinding: Binding<String> {
-        Binding<String>(
-            get: { globeState?.annotationText ?? "" },
-            set: { globeState?.annotationText = $0 })
+
+    private func annotationYBinding(for id: UUID) -> Binding<Float> {
+        Binding(
+            get: { globeState?.annotations.first { $0.id == id }?.position.y ?? 0 },
+            set: { newValue in
+                if let index = globeState?.annotations.firstIndex(where: { $0.id == id }) {
+                    globeState?.annotations[index].position.y = newValue
+                }
+            }
+        )
+    }
+
+    private func annotationZBinding(for id: UUID) -> Binding<Float> {
+        Binding(
+            get: { globeState?.annotations.first { $0.id == id }?.position.z ?? 0 },
+            set: { newValue in
+                if let index = globeState?.annotations.firstIndex(where: { $0.id == id }) {
+                    globeState?.annotations[index].position.z = newValue
+                }
+            }
+        )
     }
 }
 

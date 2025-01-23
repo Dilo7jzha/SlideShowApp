@@ -43,7 +43,7 @@ struct GlobeView: View {
         .onChange(of: appModel.selectedStoryPoint) {
             try? updateGlobeTransformation()
             updateAnnotationPosition()
-            updateAnnotationTextEntity()
+            // updateAnnotationTextEntity()
         }
     }
     
@@ -61,7 +61,8 @@ struct GlobeView: View {
     }
     
     private var annotationText: String? {
-        appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotationText
+        let annotations = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotations
+        return annotations?.first?.text
     }
     
     private func updateAnnotationTextEntity() {
@@ -69,11 +70,9 @@ struct GlobeView: View {
         let entityAnnotationText = annotationEntity?.children.first?.components[AnnotationComponent.self]?.annotation
         
         // the text of the model to display
-        let annotationText = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotationText
-        
-        if let annotationText {
+        let annotations = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotations ?? []
+        if let annotationText = annotations.first?.text {
             if entityAnnotationText == nil || annotationText != entityAnnotationText! {
-                // there is currently no text mesh, or the text changed and the mesh needs to be recreated
                 annotationEntity?.children.removeAll()
                 let textEntity = createTextEntity(for: annotationText)
                 annotationEntity?.addChild(textEntity)
@@ -84,14 +83,17 @@ struct GlobeView: View {
     }
 
     private func updateAnnotationPosition() {
-        guard let storyPointGlobeState = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState else { return }
-        annotationEntity?.isEnabled = (storyPointGlobeState.annotationPosition != nil)
-        guard let annotationEntity, let annotationPosition = storyPointGlobeState.annotationPosition else { return }
-        guard annotationEntity.position != annotationPosition else { return }
-        var transform = annotationEntity.transform
-        transform.translation = annotationPosition
-        annotationEntity.move(to: transform, relativeTo: annotationEntity.parent, duration: 1)
+        guard let annotations = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotations else { return }
+
+        annotationEntity?.children.removeAll() // Clear old annotations before adding new ones
+
+        for annotation in annotations {
+            let annotationTextEntity = createTextEntity(for: annotation.text)
+            annotationTextEntity.position = annotation.position
+            annotationEntity?.addChild(annotationTextEntity)
+        }
     }
+
     
     /// Creates an entity with a text mesh, a `BillboardComponent` and an `AnnotationComponent`.
     private func createTextEntity(for text: String) -> Entity {
