@@ -11,8 +11,21 @@ import SwiftUI
 
 struct Annotation: Identifiable, Codable, Hashable {
     var id = UUID()
-    var position: SIMD3<Float> // Position of the annotation in 3D space
+    // Changed position: SIMD3<Float> to lat, lon and offset
+    var latitude: Angle // Latitude in degrees
+    var longitude: Angle // Longitude in degrees
+    var offset: Float // Offset from the globe surface
     var text: String // Annotation text
+
+    /// Convert annotation to XYZ for rendering
+    func positionOnGlobe(radius: Float) -> SIMD3<Float> {
+        let lat = latitude.radians
+        let lon = longitude.radians - .pi / 2 //these are referenced from the func latLonToXYZ
+        let x = (Double(radius) + Double(offset)) * cos(lat) * cos(lon)
+        let y = (Double(radius) + Double(offset)) * cos(lat) * sin(lon)
+        let z = (Double(radius) + Double(offset)) * sin(lat)
+        return SIMD3<Float>(Float(y), Float(z), Float(x))
+    }
 }
 
 struct GlobeState: Hashable, Codable {

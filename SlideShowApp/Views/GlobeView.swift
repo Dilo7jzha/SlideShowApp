@@ -84,12 +84,13 @@ struct GlobeView: View {
 
     private func updateAnnotationPosition() {
         guard let annotations = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotations else { return }
-
-        annotationEntity?.children.removeAll() // Clear old annotations before adding new ones
+        
+        annotationEntity?.children.removeAll()
 
         for annotation in annotations {
+            let position = annotation.positionOnGlobe(radius: appModel.globe.radius) // convert lat and lon to XYZ
             let annotationTextEntity = createTextEntity(for: annotation.text)
-            annotationTextEntity.position = annotation.position
+            annotationTextEntity.position = position
             annotationEntity?.addChild(annotationTextEntity)
         }
     }
