@@ -4,6 +4,7 @@
 //
 //  Created by Bernhard Jenny on 26/11/2024.
 //
+
 import SwiftUI
 
 struct GlobeStateView: View {
@@ -66,53 +67,6 @@ struct GlobeStateView: View {
                         .fixedSize()
                 })
             }
-            
-
-            Section("Annotations") {
-                Button(action: {
-                    addNewAnnotation()
-                }) {
-                    Label("Add Annotation", systemImage: "plus")
-                }
-                
-                ForEach(globeState?.annotations ?? []) { annotation in
-                    VStack {
-                        TextField("Annotation Text", text: annotationTextBinding(for: annotation.id))
-                            .textFieldStyle(.roundedBorder)
-
-                        Grid(alignment: .leading) {
-                            GridRow {
-                                Text("Latitude")
-                                TextField("Latitude", value: annotationLatitudeBinding(for: annotation.id), formatter: formatter(min: -90, max: +90))
-                                    .modifier(NumberField())
-                                Slider(value: annotationLatitudeBinding(for: annotation.id), in: -90...90)
-                                    .labelsHidden()
-                            }
-                            GridRow {
-                                Text("Longitude")
-                                TextField("Longitude", value: annotationLongitudeBinding(for: annotation.id), formatter: formatter(min: -180, max: +180))
-                                    .modifier(NumberField())
-                                Slider(value: annotationLongitudeBinding(for: annotation.id), in: -180...180)
-                                    .labelsHidden()
-                            }
-                            GridRow {
-                                Text("Offset")
-                                TextField("Offset", value: annotationOffsetBinding(for: annotation.id), formatter: formatter(min: 0, max: 1))
-                                    .modifier(NumberField())
-                                Slider(value: annotationOffsetBinding(for: annotation.id), in: 0...1)
-                                    .labelsHidden()
-                            }
-                        }
-
-                        Button(action: { removeAnnotation(id: annotation.id) }) {
-                            Label("Remove Annotation", systemImage: "trash")
-                                .foregroundColor(.red)
-                        }
-                    }
-                    .padding()
-                }
-            }
-
         }
     }
     
@@ -132,7 +86,7 @@ struct GlobeStateView: View {
         Binding<Bool>(
             get: { globeState?.position != nil },
             set: {
-                if $0 == false {
+                if !$0 {
                     globeState?.position = nil
                 } else if globeState?.position == nil {
                     globeState?.position = .zero
@@ -166,7 +120,7 @@ struct GlobeStateView: View {
         Binding<Bool>(
             get: { rotateToFocusPoint },
             set: {
-                if $0 == false {
+                if !$0 {
                     globeState?.focusLatitude = nil
                     globeState?.focusLongitude = nil
                 } else if !rotateToFocusPoint {
@@ -204,7 +158,7 @@ struct GlobeStateView: View {
         Binding<Bool>(
             get: { globeState?.scale != nil },
             set: {
-                if $0 == false {
+                if !$0 {
                     globeState?.scale = nil
                 } else if globeState?.scale == nil {
                     globeState?.scale = 1
@@ -216,66 +170,6 @@ struct GlobeStateView: View {
         Binding<Float>(
             get: { globeState?.scale ?? 1 },
             set: { globeState?.scale = $0 })
-    }
-    // binding for annotation configs
-    private func addNewAnnotation() {
-        let newAnnotation = Annotation(
-            latitude: Angle(degrees: 0), // Default latitude
-            longitude: Angle(degrees: 0), // Default longitude
-            offset: 0.0, // Default offset
-            text: "New Annotation"
-        )
-        globeState?.annotations.append(newAnnotation)
-    }
-
-    // Function to remove an annotation
-    private func removeAnnotation(id: UUID) {
-        globeState?.annotations.removeAll { $0.id == id }
-    }
-
-    // Bindings for annotation editing
-    private func annotationTextBinding(for id: UUID) -> Binding<String> {
-        Binding(
-            get: { globeState?.annotations.first { $0.id == id }?.text ?? "" },
-            set: { newValue in
-                if let index = globeState?.annotations.firstIndex(where: { $0.id == id }) {
-                    globeState?.annotations[index].text = newValue
-                }
-            }
-        )
-    }
-
-    private func annotationLatitudeBinding(for id: UUID) -> Binding<Double> {
-        Binding<Double>(
-            get: { globeState?.annotations.first { $0.id == id }?.latitude.degrees ?? 0 },
-            set: { newValue in
-                if let index = globeState?.annotations.firstIndex(where: { $0.id == id }) {
-                    globeState?.annotations[index].latitude = Angle(degrees: newValue)
-                }
-            }
-        )
-    }
-
-    private func annotationLongitudeBinding(for id: UUID) -> Binding<Double> {
-        Binding<Double>(
-            get: { globeState?.annotations.first { $0.id == id }?.longitude.degrees ?? 0 },
-            set: { newValue in
-                if let index = globeState?.annotations.firstIndex(where: { $0.id == id }) {
-                    globeState?.annotations[index].longitude = Angle(degrees: newValue)
-                }
-            }
-        )
-    }
-
-    private func annotationOffsetBinding(for id: UUID) -> Binding<Float> {
-        Binding<Float>(
-            get: { globeState?.annotations.first { $0.id == id }?.offset ?? 0 },
-            set: { newValue in
-                if let index = globeState?.annotations.firstIndex(where: { $0.id == id }) {
-                    globeState?.annotations[index].offset = newValue
-                }
-            }
-        )
     }
 }
 

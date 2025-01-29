@@ -123,7 +123,8 @@ struct ContentView: View {
     private var detailView: some View {
         if let selectedStoryPointID = appModel.selectedStoryPointID,
            let index = appModel.story.storyPointIndex(for: selectedStoryPointID) {
-            StoryPointView(storyPoint: Bindable(appModel).story.storyPoints[index])
+            StoryPointView(storyPoint: Bindable(appModel).story.storyPoints[index],
+                           story: Bindable(appModel).story)
         } else {
             let message = appModel.story.hasStoryPoints ? "Select a Story Point" : "Add a Story Point"
             Text(message)

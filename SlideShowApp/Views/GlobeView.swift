@@ -61,37 +61,38 @@ struct GlobeView: View {
     }
     
     private var annotationText: String? {
-        let annotations = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotations
-        return annotations?.first?.text
+        guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return nil }
+        
+        let annotations = appModel.story.annotations.filter { storyPoint.annotationIDs.contains($0.id) }
+        return annotations.first?.text
     }
     
     private func updateAnnotationTextEntity() {
-        // the text currently shown by the text mesh in the `annotationEntity`
-        let entityAnnotationText = annotationEntity?.children.first?.components[AnnotationComponent.self]?.annotation
-        
-        // the text of the model to display
-        let annotations = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotations ?? []
-        if let annotationText = annotations.first?.text {
-            if entityAnnotationText == nil || annotationText != entityAnnotationText! {
-                annotationEntity?.children.removeAll()
-                let textEntity = createTextEntity(for: annotationText)
-                annotationEntity?.addChild(textEntity)
-            }
-        } else {
-            annotationEntity?.children.removeAll()
+        guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return }
+
+        let annotations = appModel.story.annotations.filter { storyPoint.annotationIDs.contains($0.id) }
+
+        annotationEntity?.children.removeAll() // Clear existing annotations
+
+        for annotation in annotations {
+            let textEntity = createTextEntity(for: annotation.text)
+            textEntity.position = annotation.positionOnGlobe(radius: appModel.globe.radius) // Position correctly
+            annotationEntity?.addChild(textEntity)
         }
     }
 
     private func updateAnnotationPosition() {
-        guard let annotations = appModel.story.storyPoint(with: appModel.selectedStoryPointID)?.globeState?.annotations else { return }
-        
+        guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return }
+
         annotationEntity?.children.removeAll()
 
-        for annotation in annotations {
-            let position = annotation.positionOnGlobe(radius: appModel.globe.radius) // convert lat and lon to XYZ
-            let annotationTextEntity = createTextEntity(for: annotation.text)
-            annotationTextEntity.position = position
-            annotationEntity?.addChild(annotationTextEntity)
+        for annotationID in storyPoint.annotationIDs {
+            if let annotation = appModel.story.annotations.first(where: { $0.id == annotationID }) {
+                let position = annotation.positionOnGlobe(radius: appModel.globe.radius)
+                let annotationTextEntity = createTextEntity(for: annotation.text)
+                annotationTextEntity.position = position
+                annotationEntity?.addChild(annotationTextEntity)
+            }
         }
     }
 
