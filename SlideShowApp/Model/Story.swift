@@ -13,6 +13,7 @@ struct Story: Identifiable, Codable, Hashable {
     var name = "Unnamed Story"
 
     var storyPoints: [StoryPoint] = []
+    var annotations: [Annotation] = []
     
     var hasStoryPoints: Bool {
         !storyPoints.isEmpty

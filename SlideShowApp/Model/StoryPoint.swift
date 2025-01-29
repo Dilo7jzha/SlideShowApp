@@ -13,4 +13,5 @@ struct StoryPoint: Identifiable, Hashable, Codable {
     var name: String = "Unnamed Story Point"
     var slide: Slide? = nil
     var globeState: GlobeState? = nil
+    var annotationIDs: [UUID] = []
 }
