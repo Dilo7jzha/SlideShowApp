@@ -14,21 +14,20 @@ struct GlobeView: View {
     
     /// An entity with a child entity that contains a text mesh
     @State private var annotationEntity: Entity? = nil
-    
-    private let rootEntity = Entity()
-    
+       
     var body: some View {
         RealityView { content in // async on MainActor
+            let anchor = AnchorEntity()
+            content.add(anchor)
 #if os(visionOS)
-            rootEntity.position = [0, 1, -0.8]
+            anchor.position = [0, 1, -0.8]
 #endif
             do {
                 globeEntity = try await GlobeEntity(globe: appModel.globe)
             } catch {
                 appModel.errorToShowInAlert = error
             }
-            globeEntity?.setParent(rootEntity)
-            content.add(rootEntity)
+            globeEntity?.setParent(anchor)
             try? updateGlobeTransformation()
             
             // Add an empty annotation entity
