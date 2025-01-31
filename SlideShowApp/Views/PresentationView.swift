@@ -1,13 +1,12 @@
 import SwiftUI
 
 struct PresentationView: View {
-    let storyPoints: [StoryPoint]
+    @Environment(AppModel.self) private var appModel
     @State private var currentIndex = 0
-    @Environment(\.presentationMode) private var presentationMode
 
     var body: some View {
         VStack {
-            if let currentStoryPoint = storyPoints[safe: currentIndex] {
+            if let currentStoryPoint = appModel.story.storyPoints[safe: currentIndex] {
                 SlideView(slide: .constant(currentStoryPoint.slide), isEditable: false)
                     .padding()
             } else {
@@ -28,18 +27,18 @@ struct PresentationView: View {
                 Spacer()
                 
                 Button("Next") {
-                    if currentIndex < storyPoints.count - 1 {
+                    if currentIndex < appModel.story.storyPoints.count - 1 {
                         currentIndex += 1
                     }
                 }
-                .disabled(currentIndex >= storyPoints.count - 1)
+                .disabled(currentIndex >= appModel.story.storyPoints.count - 1)
             }
             .padding()
 
             // Return and End Presentation Buttons
             HStack {
                 Button("Return") {
-                    presentationMode.wrappedValue.dismiss()
+                    appModel.isPresenting = false
                 }
                 .buttonStyle(.borderedProminent)
             }

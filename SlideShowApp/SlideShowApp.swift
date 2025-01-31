@@ -23,17 +23,23 @@ struct SlideShowApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-#if os(visionOS)
-                .onAppear {
-                    Task { @MainActor in
-                        await appModel.openImmersiveSpace(with: openImmersiveSpace)
-                    }
+            Group{
+                if appModel.isPresenting {
+                    PresentationView()
+                } else {
+                    ContentView()
                 }
+            }
+#if os(visionOS)
+            .onAppear {
+                Task { @MainActor in
+                    await appModel.openImmersiveSpace(with: openImmersiveSpace)
+                }
+            }
 #endif
-                .environment(appModel)
+            .environment(appModel)
         }
-        .windowResizability(.contentSize) // window resizability is derived from window content
+        //.windowResizability(.contentSize) // window resizability is derived from window content
         
 #if os(visionOS)
         ImmersiveSpace(id: AppModel.immersiveSpaceID) {
