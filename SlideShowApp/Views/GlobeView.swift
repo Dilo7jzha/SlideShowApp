@@ -101,7 +101,7 @@ struct GlobeView: View {
         let textMesh = MeshResource.generateText(
             text,
             extrusionDepth: 0.002,
-            font: .systemFont(ofSize: 0.05),
+            font: .systemFont(ofSize: 0.02),
             containerFrame: .zero,
             alignment: .center,
             lineBreakMode: .byWordWrapping
