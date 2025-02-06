@@ -43,7 +43,6 @@ struct PresentationView: View {
         .navigationTitle("Presentation")
     }
 
-    // ✅ Function to update the selected story point and notify GlobeView
     private func goToStoryPoint(at index: Int) {
         guard index >= 0, index < appModel.story.storyPoints.count else { return }
         

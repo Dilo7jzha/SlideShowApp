@@ -14,6 +14,7 @@ struct GlobeView: View {
     
     /// An entity with a child entity that contains a text mesh
     @State private var annotationEntity: Entity? = nil
+    @State private var pinModel: Entity? = nil
        
     var body: some View {
         RealityView { content in // async on MainActor
