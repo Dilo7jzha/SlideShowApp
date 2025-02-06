@@ -37,11 +37,11 @@ struct GlobeView: View {
             updateAnnotationPosition()
             updateAnnotationTextEntity()
             
-        } update: { _ in // synchronous on MainActor
         }
-        .onChange(of: appModel.selectedStoryPoint) {
+        .onChange(of: appModel.selectedStoryPointID) { _ in
             try? updateGlobeTransformation()
             updateAnnotationPosition()
+            updateAnnotationTextEntity()
             // updateAnnotationTextEntity()
         }
     }
@@ -58,28 +58,8 @@ struct GlobeView: View {
             duration: 2
         )
     }
-    
-    private var annotationText: String? {
-        guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return nil }
-        
-        let annotations = appModel.story.annotations.filter { storyPoint.annotationIDs.contains($0.id) }
-        return annotations.first?.text
-    }
-    
-    private func updateAnnotationTextEntity() {
-        guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return }
 
-        let annotations = appModel.story.annotations.filter { storyPoint.annotationIDs.contains($0.id) }
-
-        annotationEntity?.children.removeAll() // Clear existing annotations
-
-        for annotation in annotations {
-            let textEntity = createTextEntity(for: annotation.text)
-            textEntity.position = annotation.positionOnGlobe(radius: appModel.globe.radius) // Position correctly
-            annotationEntity?.addChild(textEntity)
-        }
-    }
-
+    /// Updates annotation positions when the selected story point changes.
     private func updateAnnotationPosition() {
         guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return }
 
@@ -95,8 +75,21 @@ struct GlobeView: View {
         }
     }
 
-    
-    /// Creates an entity with a text mesh, a `BillboardComponent` and an `AnnotationComponent`.
+    /// Updates annotation text entities when the selected story point changes.
+    private func updateAnnotationTextEntity() {
+        guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return }
+
+        let annotations = appModel.story.annotations.filter { storyPoint.annotationIDs.contains($0.id) }
+        annotationEntity?.children.removeAll()
+
+        for annotation in annotations {
+            let textEntity = createTextEntity(for: annotation.text)
+            textEntity.position = annotation.positionOnGlobe(radius: appModel.globe.radius)
+            annotationEntity?.addChild(textEntity)
+        }
+    }
+
+    /// Creates an entity with a text mesh, a `BillboardComponent`, and an `AnnotationComponent`.
     private func createTextEntity(for text: String) -> Entity {
         let textMesh = MeshResource.generateText(
             text,

@@ -18,18 +18,14 @@ struct PresentationView: View {
             // Navigation Buttons
             HStack {
                 Button("Previous") {
-                    if currentIndex > 0 {
-                        currentIndex -= 1
-                    }
+                    goToStoryPoint(at: currentIndex - 1)
                 }
                 .disabled(currentIndex <= 0)
                 
                 Spacer()
                 
                 Button("Next") {
-                    if currentIndex < appModel.story.storyPoints.count - 1 {
-                        currentIndex += 1
-                    }
+                    goToStoryPoint(at: currentIndex + 1)
                 }
                 .disabled(currentIndex >= appModel.story.storyPoints.count - 1)
             }
@@ -45,6 +41,14 @@ struct PresentationView: View {
             .padding()
         }
         .navigationTitle("Presentation")
+    }
+
+    // ✅ Function to update the selected story point and notify GlobeView
+    private func goToStoryPoint(at index: Int) {
+        guard index >= 0, index < appModel.story.storyPoints.count else { return }
+        
+        currentIndex = index
+        appModel.selectedStoryPointID = appModel.story.storyPoints[index].id
     }
 }
 
