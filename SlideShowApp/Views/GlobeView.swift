@@ -11,13 +11,10 @@ import RealityKit
 struct GlobeView: View {
     @Environment(AppModel.self) private var appModel
     @State private var globeEntity: GlobeEntity? = nil
-    
-    /// An entity with a child entity that contains a text mesh
-    @State private var annotationEntity: Entity? = nil
-    @State private var pinModel: Entity? = nil
-       
+    @State private var annotationEntities: [UUID: Entity] = [:] // Track annotation entities
+
     var body: some View {
-        RealityView { content in // async on MainActor
+        RealityView { content in
             let anchor = AnchorEntity()
             content.add(anchor)
 #if os(visionOS)
@@ -30,28 +27,20 @@ struct GlobeView: View {
             }
             globeEntity?.setParent(anchor)
             try? updateGlobeTransformation()
-            
-            // Add an empty annotation entity
-            annotationEntity = Entity()
-            globeEntity?.addChild(annotationEntity!)
-            
-            updateAnnotationPosition()
-            updateAnnotationTextEntity()
-            
+            updateAnnotations()
         }
         .onChange(of: appModel.selectedStoryPointID) { _ in
             try? updateGlobeTransformation()
-            updateAnnotationPosition()
-            updateAnnotationTextEntity()
-            // updateAnnotationTextEntity()
+            updateAnnotations()
         }
     }
-    
+
+    /// Updates the globe's position, scale, and orientation based on the accumulated state.
     private func updateGlobeTransformation() throws {
         guard let globeEntity else { return }
         let accumulatedGlobeState = try appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)
         let orientation = accumulatedGlobeState.orientation(globeCenter: globeEntity.position)
-        
+
         globeEntity.animateTransform(
             scale: accumulatedGlobeState.scale,
             orientation: orientation,
@@ -60,33 +49,50 @@ struct GlobeView: View {
         )
     }
 
-    /// Updates annotation positions when the selected story point changes.
-    private func updateAnnotationPosition() {
+    /// Updates annotations using RealityKit's `Attachment` API.
+    private func updateAnnotations() {
         guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return }
 
-        annotationEntity?.children.removeAll()
+        // Remove previous annotations
+        annotationEntities.values.forEach { $0.removeFromParent() }
+        annotationEntities.removeAll()
 
         for annotationID in storyPoint.annotationIDs {
             if let annotation = appModel.story.annotations.first(where: { $0.id == annotationID }) {
                 let position = annotation.positionOnGlobe(radius: appModel.globe.radius)
-                let annotationTextEntity = createTextEntity(for: annotation.text)
-                annotationTextEntity.position = position
-                annotationEntity?.addChild(annotationTextEntity)
+
+                Task {
+                    let pinEntity = await loadPinEntity()
+                    pinEntity.position = position
+
+                    if let globeEntity = globeEntity {
+                        let attachmentEntity = ModelEntity()
+                        attachmentEntity.position = position
+                        attachmentEntity.setParent(globeEntity)
+
+                        attachmentEntity.addChild(pinEntity) // Attach the pin to this wrapper
+
+                        let textEntity = createTextEntity(for: annotation.text)
+                        textEntity.position = [0, 0.01, 0] // Position text slightly above pin
+                        attachmentEntity.addChild(textEntity)
+
+                        annotationEntities[annotationID] = attachmentEntity
+                    }
+                }
             }
         }
     }
 
-    /// Updates annotation text entities when the selected story point changes.
-    private func updateAnnotationTextEntity() {
-        guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return }
 
-        let annotations = appModel.story.annotations.filter { storyPoint.annotationIDs.contains($0.id) }
-        annotationEntity?.children.removeAll()
-
-        for annotation in annotations {
-            let textEntity = createTextEntity(for: annotation.text)
-            textEntity.position = annotation.positionOnGlobe(radius: appModel.globe.radius)
-            annotationEntity?.addChild(textEntity)
+    /// Loads the 3D pin model (`Pin.usdz`)
+    private func loadPinEntity() async -> Entity {
+        do {
+            let pinEntity = try await Entity.load(named: "Pin.usdz")
+            pinEntity.scale = [0.02, 0.02, 0.02] // Adjust size
+            return pinEntity
+        } catch {
+            print("Failed to load Pin.usdz: \(error)")
+            return Entity()
         }
     }
 
