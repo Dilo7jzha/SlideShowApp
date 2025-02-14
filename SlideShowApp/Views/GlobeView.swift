@@ -11,12 +11,13 @@ import RealityKit
 struct GlobeView: View {
     @Environment(AppModel.self) private var appModel
     @State private var globeEntity: GlobeEntity? = nil
-       
+    @State private var attachmentEntities: Entity? = nil
+    
     var body: some View {
         RealityView { content, attachments in
             let anchor = AnchorEntity()
             content.add(anchor)
-
+            
 #if os(visionOS)
             anchor.position = [0, 1, -0.8]
 #endif
@@ -26,19 +27,20 @@ struct GlobeView: View {
                 appModel.errorToShowInAlert = error
             }
             globeEntity?.setParent(anchor)
+            
+            attachmentEntities = Entity()
+            globeEntity?.addChild(attachmentEntities!)
+            
             try? updateGlobeTransformation()
+            await updateAnnotationPosition(attachments: attachments)
         } update: { content, attachments in
-            updateAnnotationPosition(attachments: attachments)
+            Task { @MainActor in
+                await updateAnnotationPosition(attachments: attachments)
+            }
         } attachments: {
             ForEach(appModel.story.annotations) { annotation in
                 Attachment(id: annotation.id) {
-                    Text(annotation.text)
-                        .font(.title3)
-                        .padding(6)
-                        .foregroundColor(.red)
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(8)
-                        .shadow(radius: 2)
+                    GlobeAttachmentView(annotation: annotation)
                 }
             }
         }
@@ -59,17 +61,37 @@ struct GlobeView: View {
             duration: 2
         )
     }
-
+    
     /// Updates annotation positions dynamically when the selected story point changes.
-    private func updateAnnotationPosition(attachments: RealityViewAttachments) {
+    private func updateAnnotationPosition(attachments: RealityViewAttachments) async {
+        attachmentEntities?.children.removeAll()
+
         guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return }
         
         for annotationID in storyPoint.annotationIDs {
-            if let annotation = appModel.story.annotations.first(where: { $0.id == annotationID }) {
-                let position = annotation.positionOnGlobe(radius: appModel.globe.radius)
-                if let attachmentEntity = attachments.entity(for: annotation.id) {
-                    attachmentEntity.position = position
-                    attachmentEntity.look(at: .zero, from: position, relativeTo: nil)
+            guard let annotation = appModel.story.annotations.first(where: { $0.id == annotationID }),
+                  let viewEntity = attachments.entity(for: annotation.id) else { continue }
+            
+            // parent entity for view entity and geometry entity
+            let attachmentEntity = Entity()
+            attachmentEntities?.addChild(attachmentEntity)
+            
+            // view entity
+            let viewPosition = annotation.positionOnGlobe(radius: appModel.globe.radius + annotation.offset)
+            viewEntity.position = viewPosition
+            viewEntity.components.set(BillboardComponent())
+            attachmentEntity.addChild(viewEntity)
+            
+            // geometry entity
+            if let entityName = annotation.entityName {
+                if let geometryEntity = try? await Entity(named: entityName) {
+                    let geometryPosition = annotation.positionOnGlobe(radius: appModel.globe.radius)
+                    geometryEntity.position = geometryPosition
+                    geometryEntity.orientation = annotation.orientation(for: geometryPosition)
+                    attachmentEntity.addChild(geometryEntity)
+                    
+#warning("Better to scale model instead of applying hardcoded scale here")
+                    geometryEntity.scale = [0.1, 0.1, 0.1]
                 }
             }
         }
