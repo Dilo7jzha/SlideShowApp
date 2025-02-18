@@ -91,7 +91,7 @@ struct GlobeView: View {
                     attachmentEntity.addChild(geometryEntity)
                     
 #warning("Better to scale model instead of applying hardcoded scale here")
-                    geometryEntity.scale = [0.1, 0.1, 0.1]
+                    geometryEntity.scale = [0.01, 0.01, 0.01]
                 }
             }
         }

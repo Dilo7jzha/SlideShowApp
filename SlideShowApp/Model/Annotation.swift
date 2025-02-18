@@ -22,7 +22,7 @@ struct Annotation: Identifiable, Codable, Hashable {
     var text: String
 
     /// Entity to place on globe, loaded from app bundle
-    var entityName: String? = "Pin"
+    var entityName: String? = "Pin_V2"
     
     /// Convert annotation to XYZ for rendering
     func positionOnGlobe(radius: Float) -> SIMD3<Float> {
