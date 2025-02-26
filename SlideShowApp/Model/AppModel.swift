@@ -20,6 +20,11 @@ class AppModel {
     
     var story = Story()
     
+    var configuration = GlobeConfiguration() // Add configuration
+    var globeEntity: GlobeEntity? // Add GlobeEntity reference
+    var georeferencer = Georeferencer() // Add this line
+    var globeState = GlobeState()
+    
     var isPresenting: Bool = false
     
     /// The ID of the currently selected StoryPoint.
@@ -29,8 +34,19 @@ class AppModel {
     var selectedStoryPoint: StoryPoint? {
         story.storyPoint(with: selectedStoryPointID)
     }
+    
+    struct GlobeConfiguration {
+        var minScale: Float = 0.5
+        var maxScale: Float = 2.0
+        var isRotationPaused: Bool = false
+        var showAttachment: Bool = false
+    }
 
     // MARK: - Error Handling
+
+    func updateGlobeState(position: SIMD3<Float>?, scale: Float?, orientation: simd_quatf?) {
+        globeState.updateState(position: position, scale: scale, orientation: orientation)
+    }
     
     var errorToShowInAlert: Error? = nil {
         didSet {

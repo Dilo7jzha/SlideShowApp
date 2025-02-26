@@ -22,11 +22,12 @@ struct GlobeView: View {
             anchor.position = [0, 1, -0.8]
 #endif
             do {
-                globeEntity = try await GlobeEntity(globe: appModel.globe)
+                let entity = try await GlobeEntity(globe: appModel.globe)
+                entity.setParent(anchor)
+                appModel.globeEntity = entity
             } catch {
                 appModel.errorToShowInAlert = error
             }
-            globeEntity?.setParent(anchor)
             
             attachmentEntities = Entity()
             globeEntity?.addChild(attachmentEntities!)
@@ -47,6 +48,7 @@ struct GlobeView: View {
         .onChange(of: appModel.selectedStoryPointID) { _ in
             try? updateGlobeTransformation()
         }
+        .globeGestures(model: appModel)
     }
     
     private func updateGlobeTransformation() throws {

@@ -15,7 +15,17 @@ struct GlobeState: Hashable, Codable {
     var focusLongitude: Angle? = nil
     var scale: Float? = nil
 //    var annotations: [Annotation] = []
-    
+
+    // Function to update globe state dynamically
+    mutating func updateState(position: SIMD3<Float>?, scale: Float?, orientation: simd_quatf?) {
+        if let newPosition = position {
+            self.position = newPosition
+        }
+        if let newScale = scale {
+            self.scale = newScale
+        }
+    }
+
     func orientation(globeCenter: SIMD3<Float>) -> simd_quatf? {
 #warning("Radius")
         let radius = 0.2

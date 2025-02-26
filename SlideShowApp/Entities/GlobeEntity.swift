@@ -58,6 +58,20 @@ class GlobeEntity: Entity {
         components.set(CollisionComponent(shapes: [.generateSphere(radius: globe.radius)]))
     }
     
+    /// Function to apply transformations (used by gestures)
+        @MainActor
+        func applyTransform(position: SIMD3<Float>?, scale: Float?, orientation: simd_quatf?) {
+            if let position = position {
+                self.position = position
+            }
+            if let scale = scale {
+                self.scale = [scale, scale, scale]
+            }
+            if let orientation = orientation {
+                self.orientation = orientation
+            }
+        }
+    
     /// Apply animated transformation. All values in global space. Stops any current animation and updates `self.animationPlaybackController`.
     /// - Parameters:
     ///   - scale: New scale. If nil, scale is not changed.
