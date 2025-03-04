@@ -7,6 +7,7 @@
 
 import os
 import SwiftUI
+import RealityKit
 
 @MainActor
 @Observable
@@ -15,26 +16,26 @@ class AppModel {
     // MARK: - Globe
     
     var globe = Globe(name: "Demo", radius: 0.2, texture: "globe_texture")
-    
+    var globeEntity: GlobeEntity? // Parent (handles gestures)
+    var globeState = GlobeState() // State applied to stateEntity (child)
+
     // MARK: - Story
-    
+
     var story = Story()
-    
-    var configuration = GlobeConfiguration() // Add configuration
-    var globeEntity: GlobeEntity? // Add GlobeEntity reference
-    var georeferencer = Georeferencer() // Add this line
-    var globeState = GlobeState()
-    
+
+    var configuration = GlobeConfiguration()
+    var georeferencer = Georeferencer()
+
     var isPresenting: Bool = false
-    
+
     /// The ID of the currently selected StoryPoint.
     var selectedStoryPointID: StoryPoint.ID?
-    
+
     /// The currently selected StoryPoint.
     var selectedStoryPoint: StoryPoint? {
         story.storyPoint(with: selectedStoryPointID)
     }
-    
+
     struct GlobeConfiguration {
         var minScale: Float = 0.5
         var maxScale: Float = 2.0
@@ -44,10 +45,6 @@ class AppModel {
 
     // MARK: - Error Handling
 
-    func updateGlobeState(position: SIMD3<Float>?, scale: Float?, orientation: simd_quatf?) {
-        globeState.updateState(position: position, scale: scale, orientation: orientation)
-    }
-    
     var errorToShowInAlert: Error? = nil {
         didSet {
             if let errorToShowInAlert {
@@ -56,55 +53,53 @@ class AppModel {
             }
         }
     }
-    
+
+    // Function to apply GlobeState to the stateEntity inside GlobeEntity
+    func applyStateToGlobeEntity() {
+        globeEntity?.applyState(globeState)
+    }
+
     // MARK: - Immersive Space
-    
+
 #if os(visionOS)
     static let immersiveSpaceID = "ImmersiveSpace"
-    
+
     enum ImmersiveSpaceState {
         case closed
         case inTransition
         case open
     }
-    
+
     var immersiveSpaceState = ImmersiveSpaceState.closed
-    
+
     func openImmersiveSpace(with openAction: OpenImmersiveSpaceAction) async {
         guard immersiveSpaceState != .open,
               immersiveSpaceState != .inTransition else {
             return
         }
-        
+
         immersiveSpaceState = .inTransition
-        
+
         switch await openAction(id: Self.immersiveSpaceID) {
         case .opened:
-            // Don't set immersiveSpaceState to .open because there
-            // may be multiple paths to ImmersiveView.onAppear().
-            // Only set .open in ImmersiveView.onAppear().
             break
-            
         case .userCancelled:
             immersiveSpaceState = .closed
         case .error:
             errorToShowInAlert = error("An immersive space failed to open.")
-            // On error, we need to mark the immersive space
-            // as closed because it failed to open.
             fallthrough
         @unknown default:
-            // On unknown response, assume space did not open.
             immersiveSpaceState = .closed
         }
     }
-    
+
     func dismissImmersiveSpace(with dismissAction: DismissImmersiveSpaceAction) async {
         guard immersiveSpaceState == .open else { return }
         await dismissAction()
         immersiveSpaceState = .closed
     }
 #endif
-    
+
 #if os(macOS) || os(iOS)
     static let macOSGlobeViewID = "macOSGlobeView"
 #endif

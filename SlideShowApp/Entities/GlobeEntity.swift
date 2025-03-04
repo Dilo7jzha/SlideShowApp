@@ -9,12 +9,12 @@ import os
 import RealityKit
 import SwiftUI
 
-/// Globe entity with a model child consisting of a mesh and a material, plus  `InputTargetComponent`, `CollisionComponent` and `PhysicsBodyComponent` components.
-/// Gestures mutate the transform of this parent entity, while the optional automatic rotation mutates the transform of the child entity.
+/// Globe entity with a `stateEntity` child to handle state-based transformations.
+/// The parent (`GlobeEntity`) handles freeform gestures (pan, zoom, rotate).
 class GlobeEntity: Entity {
     
-    /// Child model entity
-    var modelEntity: Entity? { children.first(where: { $0 is ModelEntity }) }
+    /// The child entity that holds the actual globe model.
+    var stateEntity = Entity()  // New child that tracks GlobeState-driven transforms.
     
     /// Small roughness results in shiny reflection, large roughness results in matte appearance
     let roughness: Float = 0.4
@@ -22,285 +22,148 @@ class GlobeEntity: Entity {
     /// Simulate clear transparent coating between 0 (none) and 1
     let clearcoat: Float = 0.05
     
-    /// Duration of animations of scale, orientation and position in seconds.
+    /// Duration of animations of scale, orientation, and position in seconds.
     static let transformAnimationDuration: Double = 2
         
     /// Controller for stopping animated transformations.
     var animationPlaybackController: AnimationPlaybackController? = nil
-    
+
+    /// Required init
     @MainActor required init() {
         super.init()
+        self.name = "GlobeEntity"
+        self.addChild(stateEntity) // Make sure stateEntity is added right away.
     }
     
-    /// Globe entity
+    /// Globe entity initializer
     /// - Parameters:
     ///   - globe: Globe settings.
     init(globe: Globe) async throws {
         super.init()
         self.name = globe.name
-        
+
         let material = try await ResourceLoader.loadMaterial(
             globe: globe,
             loadPreviewTexture: false,
             roughness: roughness,
             clearcoat: clearcoat
         )
-        try Task.checkCancellation() // https://developer.apple.com/wwdc21/10134?time=723
-        
+        try Task.checkCancellation()
+
         let mesh: MeshResource = .generateSphere(radius: globe.radius)
         let modelEntity = ModelEntity(mesh: mesh, materials: [material])
         modelEntity.name = "Sphere"
         modelEntity.components.set(GroundingShadowComponent(castsShadow: true))
-        self.addChild(modelEntity)
-        
-        // Add InputTargetComponent to enable gestures
+
+        stateEntity.addChild(modelEntity)  // Attach globe model to stateEntity.
+
+        // Parent handles gestures - requires input and collision.
         components.set(InputTargetComponent())
         components.set(CollisionComponent(shapes: [.generateSphere(radius: globe.radius)]))
+
+        self.addChild(stateEntity) // Ensure stateEntity lives within globeEntity.
     }
-    
-    /// Function to apply transformations (used by gestures)
-        @MainActor
-        func applyTransform(position: SIMD3<Float>?, scale: Float?, orientation: simd_quatf?) {
-            if let position = position {
-                self.position = position
-            }
-            if let scale = scale {
-                self.scale = [scale, scale, scale]
-            }
-            if let orientation = orientation {
-                self.orientation = orientation
+
+    /// Apply state-based transformations to stateEntity (focusLatitude, scale, position)
+    func applyState(_ state: GlobeState) {
+        if let newPosition = state.position {
+            stateEntity.position = newPosition
+        }
+        if let newScale = state.scale {
+            stateEntity.scale = [newScale, newScale, newScale]
+        }
+        if let focusLatitude = state.focusLatitude, let focusLongitude = state.focusLongitude {
+            if let orientation = computeOrientationForLatLon(latitude: focusLatitude, longitude: focusLongitude) {
+                stateEntity.orientation = orientation
             }
         }
-    
-    /// Apply animated transformation. All values in global space. Stops any current animation and updates `self.animationPlaybackController`.
-    /// - Parameters:
-    ///   - scale: New scale. If nil, scale is not changed.
-    ///   - orientation: New orientation. If nil, orientation is not changed.
-    ///   - position: New position. If nil, position is not changed.
-    ///   - duration: Duration of the animation.
+    }
+
+    /// Converts latitude and longitude into a target orientation quaternion
+    private func computeOrientationForLatLon(latitude: Angle, longitude: Angle) -> simd_quatf? {
+        let xyz = latLonToXYZ(latitude: latitude, longitude: longitude, radius: 0.2)
+        let up = SIMD3<Float>(0, 1, 0)
+        if let xyz {
+            return simd_quatf(from: up, to: normalize(xyz))
+        }
+        return nil
+    }
+
+    /// Converts latitude/longitude to XYZ coordinates (used for positioning and orientation)
+    private func latLonToXYZ(latitude: Angle, longitude: Angle, radius: Float) -> SIMD3<Float>? {
+        let lat = Float(latitude.radians)
+        let lon = Float(longitude.radians - .pi / 2)
+
+        let x = radius * cos(lat) * cos(lon)
+        let y = radius * cos(lat) * sin(lon)
+        let z = radius * sin(lat)
+
+        return SIMD3<Float>(y, z, x)
+    }
+
+    /// Direct manipulation for gestures (applied to the parent `GlobeEntity`)
+    @MainActor
+    func applyTransform(position: SIMD3<Float>?, scale: Float?, orientation: simd_quatf?) {
+        if let position = position {
+            self.position = position
+        }
+        if let scale = scale {
+            self.scale = [scale, scale, scale]
+        }
+        if let orientation = orientation {
+            self.orientation = orientation
+        }
+    }
+
+    /// Apply animated transformation directly to parent (used for gestures)
     func animateTransform(
         scale: Float? = nil,
         orientation: simd_quatf? = nil,
         position: SIMD3<Float>? = nil,
-        duration: Double = 2
+        duration: Double? = nil
     ) {
-        if let scale, abs(scale) < 0.000001 {
-            Logger().warning("Animating the scale of an entity to 0 will cause a subsequent inverse of the entity's transform to return NaN values.")
-        }
-        let scale = scale == nil ? self.scale : [scale!, scale!, scale!]
-        let orientation = orientation ?? self.orientation
-        let position = position ?? self.position
+        let duration = duration ?? GlobeEntity.transformAnimationDuration
+
+        let finalScale = scale.map { SIMD3<Float>(repeating: $0) } ?? self.scale
+        let finalOrientation = orientation ?? self.orientation
+        let finalPosition = position ?? self.position
+
         let transform = Transform(
-            scale: scale,
-            rotation: orientation,
-            translation: position
+            scale: finalScale,
+            rotation: finalOrientation,
+            translation: finalPosition
         )
+
         animationPlaybackController?.stop()
         animationPlaybackController = move(to: transform, relativeTo: nil, duration: duration)
+
         if animationPlaybackController?.isPlaying == false {
-            Logger().warning("move(to: relativeTo: duration:) animation not playing for '\(self.name)'.")
             self.transform = transform
         }
     }
-    
-    /// Returns true if the globe axis is vertically oriented.
-    var isNorthOriented: Bool {
-        let eps: Float = 0.000001
-        let axis = orientation.axis
-        if !axis.x.isFinite || !axis.y.isFinite || !axis.z.isFinite {
-            return true
-        }
-        return abs(axis.x) < eps && abs(abs(axis.y) - 1) < eps && abs(axis.z) < eps
-    }
-    
-    /// North-orient the globe.
-    /// - Parameter radius: The unscaled radius of the globe, needed for computing the duration of the animation. If nil a default duration is used for the animation..
-    func orientToNorth(radius: Float? = nil) {
-        let orientation = Self.orientToNorth(orientation: self.orientation)
-        let duration = animationDuration(for: orientation, radius: radius)
-        animateTransform(orientation: orientation, duration: duration)
-    }
-    
-    /// Rotate an orientation quaternion, such that it is north-oriented.
-    /// - Parameter orientation: The quaternion to orient.
-    /// - Returns: A new quaternion.
-    static func orientToNorth(orientation: simd_quatf) -> simd_quatf {
-        // The up vector in the world space (y-axis)
-        let worldUp = simd_float3(0, 1, 0)
-        
-        // Rotate the world up vector by the quaternion
-        let localUp = orientation.act(worldUp)
-        
-        // Compute the axis to rotate around to align localUp with the world up vector
-        let rotationAxis = normalize(simd_cross(localUp, worldUp))
 
-        // The up vector and the rotated up vector are identical: return the passed orientation
-        if !rotationAxis.x.isFinite || !rotationAxis.y.isFinite || !rotationAxis.z.isFinite {
-            return orientation
-        }
-        
-        // Compute the angle between localUp and the world up vector
-        let dotProduct = simd_dot(localUp, worldUp)
-        let angle = acos(dotProduct)
-
-        // Create the quaternion that represents the rotation needed to align localUp with the world up vector
-        let alignmentQuat = simd_quatf(angle: angle, axis: rotationAxis)
-        
-        // Apply the alignment quaternion to the original quaternion to remove the roll component
-        return alignmentQuat * orientation
-    }
-    
-    /// Rotates the globe such that a given point on the globe faces the camera.
-    /// - Parameters:
-    ///   - location: The point on the globe that is to face the camera relative to the center of the globe.
-    ///   - radius: The unscaled radius of the globe, needed for computing the duration of the animation. If nil a default duration is used for the animation.
-    func rotate(to location: SIMD3<Float>, radius: Float? = nil) {
-        if let orientation = orient(to: location) {
-            let duration = animationDuration(for: orientation, radius: radius)
-            animateTransform(orientation: orientation, duration: duration)
-        }
-    }
-    
-    func orient(to location: SIMD3<Float>) -> simd_quatf? {
-        guard let cameraPosition else { return nil }
-        // Unary vector in global space from the globe center to the camera.
-        // This vector is pointing from the globe center toward the target position on the globe.
-        let v = normalize(cameraPosition - position(relativeTo: nil))
-        
-        // rotate the point to the target position
-        let orientation = simd_quatf(from: normalize(location), to: v)
-//        return Self.orientToNorth(orientation: orientation)
-        return orientation
-    }
-    
-    /// Returns a duration in seconds for animating a transformation. Takes into account the size of the globe and the angular distance of the transformation.
-    /// - Parameters:
-    ///   - transformation: The transformation.
-    ///   - radius: The unscaled radius of the globe. If nil, a default duration is returned.
-    /// - Returns: Duration in seconds.
-    func animationDuration(for transformation: simd_quatf, radius: Float?) -> Double {
-        var duration = Self.transformAnimationDuration
-        guard let radius else { return duration }
-        // scale duration with current size of the globe if the scaled radius is greater than 1 meter
-        // radius of 1 m -> 1, max radius -> max radius
-        let scaledRadius = radius * meanScale
-        let sizeScale = max(1, scaledRadius)
-        duration *= Double(sizeScale)
-        
-        // Scale duration with the angle between the two quaternions: 0° -> 0, 180° -> 2
-        // The angle is computed with https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Recovering_the_axis-angle_representation
-        // let qd = (transformation.conjugate * orientation)
-        // let angle = 2 * atan2(length(qd.imag), qd.real)
-        var angle = (transformation.conjugate * orientation).angle
-        
-        // Normalize the angle if greater than 180 degrees.
-        if angle > .pi {
-            angle = abs(angle - 2 * .pi)
-        }
-        
-        duration *= Double(angle / .pi * 2)
-        
-        return max(0.2, duration)
-    }
-    
-    /// Returns true if the scaled size of the globe is close to the original size.
-    /// - Parameters:
-    ///   - radius: Radius of the globe in meter.
-    ///   - tolerance: Tolerance in meter, default is 3 mm.
-    /// - Returns: True if the size is close to the original.
-    func isAtOriginalSize(radius: Float, tolerance: Float = 0.003) -> Bool {
-        let eps = tolerance / radius
-        return abs(scale.x - 1) < eps && abs(scale.y - 1) < eps && abs(scale.z - 1) < eps
-    }
-    
-    /// Changes the scale of the globe and moves the globe along a line connecting the camera and the center of the globe,
-    /// such that the globe section facing the camera remains at a constant distance.
-    /// - Parameters:
-    ///   - newScale: The new scale of the globe.
-    ///   - oldScale: The current scale of the globe.
-    ///   - oldPosition: The current position of the globe.
-    ///   - cameraPosition: The camera position. If nil, the current camera position is retrieved.
-    ///   - radius: Radius of the unscaled globe.
-    ///   - duration: Animation duration in seconds.
-    func scaleAndAdjustDistanceToCamera(
-        newScale: Float,
-        oldScale: Float,
-        oldPosition: SIMD3<Float>,
-        cameraPosition: SIMD3<Float>? = nil,
-        radius: Float,
-        duration: Double = 0
-    ) {
-        let cameraPosition = cameraPosition ?? (self.cameraPosition ?? SIMD3(0, 1, 0))
-        
-        // Compute by how much the globe radius changes.
-        let deltaRadius = (newScale - oldScale) * radius
-        
-        // The unary direction vector from the globe to the camera.
-        let globeCameraDirection = normalize(cameraPosition - oldPosition)
-        
-        // Move the globe center along that direction.
-        let position = oldPosition - globeCameraDirection * deltaRadius
-        if duration > 0 {
-            animateTransform(scale: newScale, position: position, duration: duration)
-        } else {
-            self.scale = [newScale, newScale, newScale]
-            self.position = position
-        }
-    }
-    
-    /// Changes the scale of the globe and moves the globe along a line connecting the camera and the center of the globe,
-    /// such that the globe section facing the camera remains at a constant distance.
-    /// - Parameters:
-    ///   - newScale: The new scale of the globe.
-    ///   - radius: Radius of the unscaled globe.
-    ///   - duration: Animation duration in seconds.
-    func scaleAndAdjustDistanceToCamera(
-        newScale: Float,
-        radius: Float,
-        duration: Double = 0
-    ) {
-        self.scaleAndAdjustDistanceToCamera(
-            newScale: newScale,
-            oldScale: meanScale,
-            oldPosition: position,
-            radius: radius,
-            duration: duration
-        )
-    }
-    
-    /// Returns the distance between the closest point of globe surface to the camera and the camera position.
-    /// - Parameter radius: Radius of the globe in meter.
-    /// - Returns: Distance in meter.
-    func distanceToCamera(radius: Float) throws -> Float  {
-        guard let cameraPosition else {
-            throw error("The camera position is unknown.")
-        }
-        let globeCenter = position(relativeTo: nil)
-        return distance(cameraPosition, globeCenter) - radius
-    }
-    
-    /// Move a globe toward the camera along a straight line.
-    /// - Parameters:
-    ///   - distance: The target distance between the camera and the closest point on the globe.
-    ///   - radius: The radius of the globe.
-    ///   - duration: Duration of the animation.
-    func moveTowardCamera(distance: Float, radius: Float, duration: Double = 0) {
-        guard let cameraPosition else { return }
-        let globeCenter = position(relativeTo: nil)
-        let v = normalize(globeCenter - cameraPosition)
-        let newGlobeCenter = cameraPosition + v * (distance + radius)
-        animateTransform(position: newGlobeCenter, duration: duration)
-    }
-    
-    /// The  mean scale factor of this entity relative to the world space.
+    /// Calculate mean scale across axes (used for size-related decisions)
     @MainActor
     var meanScale: Float { scale(relativeTo: nil).sum() / 3 }
-    
-    private var cameraPosition: SIMD3<Float>? {
-#if os(visionOS)
-        CameraTracker.shared.position
-#else
-        [0, 0, 0]
-#endif
+}
+
+extension GlobeEntity {
+    /// Calculates distance from the camera to the globe surface.
+    func distanceToCamera(radius: Float) throws -> Float {
+        guard let cameraPosition = CameraTracker.shared.position else {
+            throw NSError(domain: "Camera position unavailable", code: 0)
+        }
+        let globeCenter = position(relativeTo: nil)
+        let distance = length(globeCenter - cameraPosition) - radius
+        return distance
     }
+    
+    func moveTowardCamera(distance: Float, radius: Float, duration: Double) {
+            guard let cameraPosition = CameraTracker.shared.position else { return }
+            let globeCenter = position(relativeTo: nil)
+            let vectorToCamera = normalize(cameraPosition - globeCenter)
+            let newPosition = cameraPosition - vectorToCamera * (distance + radius)
+
+            animateTransform(position: newPosition, duration: duration)
+        }
 }
