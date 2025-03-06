@@ -122,8 +122,7 @@ struct ContentView: View {
             StoryPointView(storyPoint: Bindable(appModel).story.storyPoints[index],
                            story: Bindable(appModel).story,
                            applyState: {
-                                   appModel.applyStateToGlobeEntity()
-                               })
+            })
         } else {
             let message = appModel.story.hasStoryPoints ? "Select a Story Point" : "Add a Story Point"
             Text(message)

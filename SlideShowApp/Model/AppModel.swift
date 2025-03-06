@@ -17,7 +17,6 @@ class AppModel {
     
     var globe = Globe(name: "Demo", radius: 0.2, texture: "globe_texture")
     var globeEntity: GlobeEntity? // Parent (handles gestures)
-    var globeState = GlobeState() // State applied to stateEntity (child)
 
     // MARK: - Story
 
@@ -52,11 +51,6 @@ class AppModel {
                 logger.error("Alert: \(errorToShowInAlert.localizedDescription) \(errorToShowInAlert.alertSecondaryMessage ?? "")")
             }
         }
-    }
-
-    // Function to apply GlobeState to the stateEntity inside GlobeEntity
-    func applyStateToGlobeEntity() {
-        globeEntity?.applyState(globeState)
     }
 
     // MARK: - Immersive Space
