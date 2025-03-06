@@ -45,6 +45,9 @@ struct GlobeView: View {
                 }
             }
         }
+        .onChange(of: appModel.story) {
+            try? updateGlobeTransformation()
+        }
         .onChange(of: appModel.selectedStoryPointID) { _ in
             try? updateGlobeTransformation()
         }
