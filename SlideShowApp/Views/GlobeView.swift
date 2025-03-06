@@ -47,25 +47,16 @@ struct GlobeView: View {
         .onChange(of: appModel.story) {
             updateGlobeTransformation()
         }
-        .onChange(of: appModel.selectedStoryPointID) { _ in
+        .onChange(of: appModel.selectedStoryPointID) {
             updateGlobeTransformation()
         }
         .globeGestures(model: appModel)
     }
     
     private func updateGlobeTransformation() {
-        guard let globeEntity = appModel.globeEntity,
-              let accumulatedGlobeState = try? appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID) else {
-            return
+        if let accumulatedGlobeState = try? appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)  {
+            appModel.globeEntity?.applyState(accumulatedGlobeState)
         }
-        let orientation = accumulatedGlobeState.orientation(globeCenter: globeEntity.position)
-        
-        globeEntity.animateTransform(
-            scale: accumulatedGlobeState.scale,
-            orientation: orientation,
-            position: accumulatedGlobeState.position,
-            duration: 2
-        )
     }
     
     /// Updates annotation positions dynamically when the selected story point changes.
