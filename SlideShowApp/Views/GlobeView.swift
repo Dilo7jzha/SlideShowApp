@@ -28,7 +28,7 @@ struct GlobeView: View {
                 attachmentEntities = Entity()
                 globeEntity.addChild(attachmentEntities!)
                 
-                try updateGlobeTransformation()
+                updateGlobeTransformation()
                 await updateAnnotationPosition(attachments: attachments)
             } catch {
                 appModel.errorToShowInAlert = error
@@ -45,17 +45,19 @@ struct GlobeView: View {
             }
         }
         .onChange(of: appModel.story) {
-            try? updateGlobeTransformation()
+            updateGlobeTransformation()
         }
         .onChange(of: appModel.selectedStoryPointID) { _ in
-            try? updateGlobeTransformation()
+            updateGlobeTransformation()
         }
         .globeGestures(model: appModel)
     }
     
-    private func updateGlobeTransformation() throws {
-        guard let globeEntity = appModel.globeEntity else { return }
-        let accumulatedGlobeState = try appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)
+    private func updateGlobeTransformation() {
+        guard let globeEntity = appModel.globeEntity,
+              let accumulatedGlobeState = try? appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID) else {
+            return
+        }
         let orientation = accumulatedGlobeState.orientation(globeCenter: globeEntity.position)
         
         globeEntity.animateTransform(
