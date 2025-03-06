@@ -14,7 +14,7 @@ struct StoryPointView: View {
     @State private var selectedTab = 0
     @State private var showAnnotationsView = false
     @State private var showNamePanel: Bool = false
-
+    
     var body: some View {
         VStack {
             Picker("", selection: $selectedTab) {
@@ -25,27 +25,27 @@ struct StoryPointView: View {
             .pickerStyle(.segmented)
             .frame(maxWidth: 400)
             .padding()
-
+            
             switch selectedTab {
             case 0:
                 SlideView(slide: $storyPoint.slide)
                     .padding()
             case 1:
                 if let globeState = Binding($storyPoint.globeState) {
-                                    GlobeStateView(globeState: globeState, applyState: applyState)
-                                        .padding()
-                                } else {
-                                    Text("No globe state available.")
-                                        .foregroundStyle(.red)
-                                        .padding()
-                                }
+                    GlobeStateView(globeState: globeState, applyState: applyState)
+                        .padding()
+                } else {
+                    Text("No globe state available.")
+                        .foregroundStyle(.red)
+                        .padding()
+                }
             case 2:
                 annotationSelectionView() // Annotations section
                     .padding()
             default:
                 EmptyView()
             }
-
+            
             Spacer(minLength: 0)
         }
         .navigationTitle(storyPoint.name)
@@ -58,13 +58,13 @@ struct StoryPointView: View {
             VStack {
                 Text("Story Point Name")
                     .font(.title)
-
+                
                 TextField(text: $storyPoint.name, prompt: Text("Name"), label: {
                     Text("Story Point Name")
                 })
                 .textFieldStyle(.roundedBorder)
                 .padding()
-
+                
                 Button("Close") {
                     showNamePanel = false
                 }
@@ -72,47 +72,47 @@ struct StoryPointView: View {
             .padding()
         }
     }
-
+    
     // Annotation selection UI
     private func annotationSelectionView() -> some View {
-            Form {
-                Section("Select Annotations by ID") {
-                    ForEach(story.annotations) { annotation in
-                        Toggle(isOn: annotationSelectionBinding(for: annotation.id)) {
-                            VStack(alignment: .leading) {
-                                Text("ID: \(annotation.id.uuidString.prefix(8))") // Display annotation ID
+        Form {
+            Section("Select Annotations by ID") {
+                ForEach(story.annotations) { annotation in
+                    Toggle(isOn: annotationSelectionBinding(for: annotation.id)) {
+                        VStack(alignment: .leading) {
+                            Text("ID: \(annotation.id.uuidString.prefix(8))") // Display annotation ID
                                 .bold()
-                            }
                         }
                     }
                 }
-
-                Section {
-                    Button(action: {
-                        showAnnotationsView.toggle()
-                    }) {
-                        Label("Manage Annotations", systemImage: "plus.viewfinder")
-                    }
-                    .sheet(isPresented: $showAnnotationsView) {
-                        AnnotationsView(story: $story, isPresented: $showAnnotationsView)
-                    }
+            }
+            
+            Section {
+                Button(action: {
+                    showAnnotationsView.toggle()
+                }) {
+                    Label("Manage Annotations", systemImage: "plus.viewfinder")
+                }
+                .sheet(isPresented: $showAnnotationsView) {
+                    AnnotationsView(story: $story, isPresented: $showAnnotationsView)
                 }
             }
         }
-
+    }
+    
     // id binding to track selected annotations
     private func annotationSelectionBinding(for id: UUID) -> Binding<Bool> {
-            Binding<Bool>(
-                get: { storyPoint.annotationIDs.contains(id) },
-                set: { newValue in
-                    if newValue {
-                        storyPoint.annotationIDs.append(id)
-                    } else {
-                        storyPoint.annotationIDs.removeAll { $0 == id }
-                    }
+        Binding<Bool>(
+            get: { storyPoint.annotationIDs.contains(id) },
+            set: { newValue in
+                if newValue {
+                    storyPoint.annotationIDs.append(id)
+                } else {
+                    storyPoint.annotationIDs.removeAll { $0 == id }
                 }
-            )
-        }
+            }
+        )
+    }
 }
 
 #Preview {
