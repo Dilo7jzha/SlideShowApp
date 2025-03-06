@@ -52,7 +52,7 @@ struct GlobeView: View {
     }
     
     private func updateGlobeTransformation() throws {
-        guard let globeEntity else { return }
+        guard let globeEntity = appModel.globeEntity else { return }
         let accumulatedGlobeState = try appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)
         let orientation = accumulatedGlobeState.orientation(globeCenter: globeEntity.position)
         
