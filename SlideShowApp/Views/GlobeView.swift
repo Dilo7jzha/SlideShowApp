@@ -10,7 +10,6 @@ import RealityKit
 
 struct GlobeView: View {
     @Environment(AppModel.self) private var appModel
-    @State private var globeEntity: GlobeEntity? = nil
     @State private var attachmentEntities: Entity? = nil
     
     var body: some View {
@@ -22,18 +21,18 @@ struct GlobeView: View {
             anchor.position = [0, 1, -0.8]
 #endif
             do {
-                let entity = try await GlobeEntity(globe: appModel.globe)
-                entity.setParent(anchor)
-                appModel.globeEntity = entity
+                let globeEntity = try await GlobeEntity(globe: appModel.globe)
+                globeEntity.setParent(anchor)
+                appModel.globeEntity = globeEntity
+                
+                attachmentEntities = Entity()
+                globeEntity.addChild(attachmentEntities!)
+                
+                try updateGlobeTransformation()
+                await updateAnnotationPosition(attachments: attachments)
             } catch {
                 appModel.errorToShowInAlert = error
             }
-            
-            attachmentEntities = Entity()
-            globeEntity?.addChild(attachmentEntities!)
-            
-            try? updateGlobeTransformation()
-            await updateAnnotationPosition(attachments: attachments)
         } update: { content, attachments in
             Task { @MainActor in
                 await updateAnnotationPosition(attachments: attachments)
