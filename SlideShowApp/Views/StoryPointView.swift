@@ -10,7 +10,6 @@ import SwiftUI
 struct StoryPointView: View {
     @Binding var storyPoint: StoryPoint
     @Binding var story: Story // Now accessing the story to manage annotations
-    var applyState: () -> Void
     @State private var selectedTab = 0
     @State private var showAnnotationsView = false
     @State private var showNamePanel: Bool = false
@@ -32,7 +31,7 @@ struct StoryPointView: View {
                     .padding()
             case 1:
                 if let globeState = Binding($storyPoint.globeState) {
-                    GlobeStateView(globeState: globeState, applyState: applyState)
+                    GlobeStateView(globeState: globeState)
                         .padding()
                 } else {
                     Text("No globe state available.")
@@ -118,8 +117,7 @@ struct StoryPointView: View {
 #Preview {
     StoryPointView(
         storyPoint: .constant(StoryPoint(slide: Slide(), globeState: GlobeState(), annotationIDs: [])),
-        story: .constant(Story(storyPoints: [], annotations: [Annotation(latitude: Angle(degrees: 0), longitude: Angle(degrees: 0), offset: 0, text: "Sample Annotation")])),
-        applyState: {}
+        story: .constant(Story(storyPoints: [], annotations: [Annotation(latitude: Angle(degrees: 0), longitude: Angle(degrees: 0), offset: 0, text: "Sample Annotation")]))
     )
 }
 

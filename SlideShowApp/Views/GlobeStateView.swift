@@ -9,7 +9,6 @@ import SwiftUI
 
 struct GlobeStateView: View {
     @Binding var globeState: GlobeState
-    var applyState: () -> Void  // Parent passes this callback
 
     var body: some View {
         Form {
@@ -38,7 +37,6 @@ struct GlobeStateView: View {
 
     private func toggleRow(_ label: String, isOn: Binding<Bool>) -> some View {
         Toggle(label, isOn: isOn)
-            .onChange(of: isOn.wrappedValue) { _ in applyState() }
     }
 
     private func coordinateFields() -> some View {
@@ -55,7 +53,6 @@ struct GlobeStateView: View {
             TextField(label, value: binding, formatter: numberFormatter())
                 .textFieldStyle(.roundedBorder)
         }
-        .onChange(of: binding.wrappedValue) { _ in applyState() }
     }
 
     private func latLonSliders() -> some View {
@@ -70,15 +67,11 @@ struct GlobeStateView: View {
             Text(label)
             Slider(value: binding, in: range)
         }
-        .onChange(of: binding.wrappedValue) { _ in applyState() }
     }
 
     private func scaleField() -> some View {
         TextField("Scale", value: scaleBinding, formatter: numberFormatter(min: 0))
             .textFieldStyle(.roundedBorder)
-            .onChange(of: scaleBinding.wrappedValue) { _ in
-                applyState()
-            }
     }
 
     // MARK: - Dynamic Bindings (avoid self-reference errors)
@@ -86,7 +79,7 @@ struct GlobeStateView: View {
     private var positionEnabledBinding: Binding<Bool> {
         Binding(
             get: { globeState.position != nil },
-            set: { globeState.position = $0 ? SIMD3<Float>(0, 0, 0) : nil; applyState() }
+            set: { globeState.position = $0 ? SIMD3<Float>(0, 0, 0) : nil }
         )
     }
 
@@ -101,7 +94,6 @@ struct GlobeStateView: View {
                     globeState.focusLatitude = nil
                     globeState.focusLongitude = nil
                 }
-                applyState()
             }
         )
     }
@@ -109,7 +101,7 @@ struct GlobeStateView: View {
     private var scaleEnabledBinding: Binding<Bool> {
         Binding(
             get: { globeState.scale != nil },
-            set: { globeState.scale = $0 ? 1.0 : nil; applyState() }
+            set: { globeState.scale = $0 ? 1.0 : nil }
         )
     }
 
@@ -118,42 +110,42 @@ struct GlobeStateView: View {
     private var positionXBinding: Binding<Float> {
         Binding(
             get: { globeState.position?.x ?? 0 },
-            set: { globeState.position?.x = $0; applyState() }
+            set: { globeState.position?.x = $0 }
         )
     }
 
     private var positionYBinding: Binding<Float> {
         Binding(
             get: { globeState.position?.y ?? 0 },
-            set: { globeState.position?.y = $0; applyState() }
+            set: { globeState.position?.y = $0 }
         )
     }
 
     private var positionZBinding: Binding<Float> {
         Binding(
             get: { globeState.position?.z ?? 0 },
-            set: { globeState.position?.z = $0; applyState() }
+            set: { globeState.position?.z = $0 }
         )
     }
 
     private var focusLatitudeBinding: Binding<Double> {
         Binding(
             get: { globeState.focusLatitude?.degrees ?? 0 },
-            set: { globeState.focusLatitude = Angle(degrees: $0); applyState() }
+            set: { globeState.focusLatitude = Angle(degrees: $0) }
         )
     }
 
     private var focusLongitudeBinding: Binding<Double> {
         Binding(
             get: { globeState.focusLongitude?.degrees ?? 0 },
-            set: { globeState.focusLongitude = Angle(degrees: $0); applyState() }
+            set: { globeState.focusLongitude = Angle(degrees: $0) }
         )
     }
 
     private var scaleBinding: Binding<Float> {
         Binding(
             get: { globeState.scale ?? 1 },
-            set: { globeState.scale = $0; applyState() }
+            set: { globeState.scale = $0 }
         )
     }
 
