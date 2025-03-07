@@ -66,18 +66,29 @@ class GlobeEntity: Entity {
 
     /// Apply state-based transformations to stateEntity (focusLatitude, scale, position)
     func applyState(_ state: GlobeState) {
-        if let newPosition = state.position {
-            stateEntity.position = newPosition
-        }
-        if let newScale = state.scale {
-            stateEntity.scale = [newScale, newScale, newScale]
-        }
-        if let focusLatitude = state.focusLatitude, let focusLongitude = state.focusLongitude {
-            if let orientation = computeOrientationForLatLon(latitude: focusLatitude, longitude: focusLongitude) {
-                stateEntity.orientation = orientation
+            guard let position = state.position, let scale = state.scale else { return }
+            
+            let orientation: simd_quatf
+            if let focusLatitude = state.focusLatitude, let focusLongitude = state.focusLongitude {
+               orientation = computeOrientationForLatLon(latitude: focusLatitude, longitude: focusLongitude) ?? stateEntity.orientation
+            } else {
+                orientation = stateEntity.orientation
+            }
+            
+            let duration = GlobeEntity.transformAnimationDuration
+            let transform = Transform(
+                scale: [scale, scale, scale],
+                rotation: orientation,
+                translation: position
+            )
+            
+            animationPlaybackController?.stop()
+            animationPlaybackController = stateEntity.move(to: transform, relativeTo: nil, duration: duration)
+            
+            if animationPlaybackController?.isPlaying == false {
+                self.stateEntity.transform = transform
             }
         }
-    }
 
     /// Converts latitude and longitude into a target orientation quaternion
     private func computeOrientationForLatLon(latitude: Angle, longitude: Angle) -> simd_quatf? {
