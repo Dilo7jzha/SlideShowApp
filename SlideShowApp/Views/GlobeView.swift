@@ -26,7 +26,7 @@ struct GlobeView: View {
                 appModel.globeEntity = globeEntity
                 
                 attachmentEntities = Entity()
-                globeEntity.addChild(attachmentEntities!)
+                globeEntity.stateEntity.addChild(attachmentEntities!)
                 
                 updateGlobeTransformation()
                 await updateAnnotationPosition(attachments: attachments)
