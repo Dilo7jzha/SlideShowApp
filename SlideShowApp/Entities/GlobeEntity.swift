@@ -58,8 +58,8 @@ class GlobeEntity: Entity {
         stateEntity.addChild(modelEntity)  // Attach globe model to stateEntity.
 
         // Parent handles gestures - requires input and collision.
-        components.set(InputTargetComponent())
-        components.set(CollisionComponent(shapes: [.generateSphere(radius: globe.radius)]))
+        stateEntity.components.set(InputTargetComponent())
+        stateEntity.components.set(CollisionComponent(shapes: [.generateSphere(radius: globe.radius)]))
 
         self.addChild(stateEntity) // Ensure stateEntity lives within globeEntity.
     }
