@@ -25,9 +25,9 @@ struct AnnotationsView: View {
 
                     HStack {
                         Text("Latitude:")
-                        TextField("Latitude", value: $newAnnotationLatitude, formatter: formatter(min: -180, max: 180))
+                        TextField("Latitude", value: $newAnnotationLatitude, formatter: formatter(min: -90, max: 90))
                             .modifier(NumberField())
-                        Slider(value: $newAnnotationLatitude, in: -180...180)
+                        Slider(value: $newAnnotationLatitude, in: -90...90)
                             .labelsHidden()
                     }
 
@@ -62,7 +62,7 @@ struct AnnotationsView: View {
 
                             HStack {
                                 Text("Latitude:")
-                                TextField("Latitude", value: annotationLatitudeBinding(for: annotation.id), formatter: formatter(min: -180, max: 180))
+                                TextField("Latitude", value: annotationLatitudeBinding(for: annotation.id), formatter: formatter(min: -90, max: 90))
                                     .modifier(NumberField())
                             }
 

@@ -50,9 +50,9 @@ struct GlobeStateView: View {
                 Grid(alignment: .leading) {
                     GridRow {
                         Text("Latitude")
-                        TextField("Latitude", value: focusLatitudeBinding, formatter: formatter(min: -180, max: +180))
+                        TextField("Latitude", value: focusLatitudeBinding, formatter: formatter(min: -90, max: +90))
                             .modifier(NumberField())
-                        Slider(value: focusLatitudeBinding, in: -180...180)
+                        Slider(value: focusLatitudeBinding, in: -90...90)
                             .labelsHidden()
                     }
                     GridRow {
