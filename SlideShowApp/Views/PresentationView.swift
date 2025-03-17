@@ -1,3 +1,10 @@
+//
+//  PresentationView.swift
+//  SlideshowApp
+//
+//  Created by D'Angelo Zhang on 13/12/2024.
+//
+
 import SwiftUI
 
 struct PresentationView: View {
@@ -15,37 +22,50 @@ struct PresentationView: View {
                     .padding()
             }
 
+            Spacer() // Pushes buttons towards the bottom
+
             // Navigation Buttons
             HStack {
-                Button("Previous") {
-                    goToStoryPoint(at: currentIndex - 1)
+                Button(action: { goToStoryPoint(at: currentIndex - 1) }) {
+                    Label("Previous", systemImage: "arrow.left")
+                        .font(.largeTitle)
+                        .padding()
+                        .frame(maxWidth: .infinity, minHeight: 60)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
                 .disabled(currentIndex <= 0)
-                
+
                 Spacer()
-                
-                Button("Next") {
-                    goToStoryPoint(at: currentIndex + 1)
+
+                Button(action: { goToStoryPoint(at: currentIndex + 1) }) {
+                    Label("Next", systemImage: "arrow.right")
+                        .font(.largeTitle)
+                        .padding()
+                        .frame(maxWidth: .infinity, minHeight: 60)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
                 .disabled(currentIndex >= appModel.story.storyPoints.count - 1)
             }
             .padding()
 
-            // Return and End Presentation Buttons
-            HStack {
-                Button("Return") {
-                    appModel.isPresenting = false
-                }
-                .buttonStyle(.borderedProminent)
+            // Return Button at the Bottom
+            Button(action: { appModel.isPresenting = false }) {
+                Text("Return")
+                    .font(.largeTitle)
+                    .padding()
+                    .frame(maxWidth: .infinity, minHeight: 60)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
             }
-            .padding()
+            .padding(.bottom, 20)
         }
         .navigationTitle("Presentation")
     }
 
     private func goToStoryPoint(at index: Int) {
         guard index >= 0, index < appModel.story.storyPoints.count else { return }
-        
         currentIndex = index
         appModel.selectedStoryPointID = appModel.story.storyPoints[index].id
     }
