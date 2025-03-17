@@ -21,10 +21,6 @@ struct SlideView: View {
                     .scaledToFit()
                     .frame(maxWidth: 300, maxHeight: 300)
                     .padding()
-            } else {
-                Text("No Image")
-                    .font(.headline)
-                    .padding()
             }
             
             // Add Image button is shown only if editing is enabled
@@ -58,8 +54,8 @@ struct SlideView: View {
                     .font(.title)
                     .padding()
                     .border(Color.gray, width: 1)
-            } else {
-                Text(slide?.text ?? "No text available")
+            } else if let slideText = slide?.text, !slideText.isEmpty, slideText != "Enter text here" {
+                Text(slideText)
                     .font(.title)
                     .padding()
                     .border(Color.gray, width: 1)
