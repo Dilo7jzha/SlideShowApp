@@ -13,7 +13,7 @@ struct AnnotationsView: View {
     @State private var newAnnotationText: String = ""
     @State private var newAnnotationLatitude: Double = 0.0
     @State private var newAnnotationLongitude: Double = 0.0
-    @State private var newAnnotationOffset: Float = 0.0
+    @State private var newAnnotationOffset: Float = 0.05
 
     var body: some View {
         VStack {
@@ -112,7 +112,7 @@ struct AnnotationsView: View {
         newAnnotationText = ""
         newAnnotationLatitude = 0.0
         newAnnotationLongitude = 0.0
-        newAnnotationOffset = 0.0
+        newAnnotationOffset = 0.05
     }
 
     // Function to delete an annotation
@@ -166,7 +166,7 @@ struct AnnotationsView: View {
 
     private func annotationOffsetBinding(for id: UUID) -> Binding<Float> {
         Binding(
-            get: { story.annotations.first { $0.id == id }?.offset ?? 0.0 },
+            get: { story.annotations.first { $0.id == id }?.offset ?? 0.05 },
             set: { newValue in
                 if let index = story.annotations.firstIndex(where: { $0.id == id }) {
                     story.annotations[index].offset = newValue
