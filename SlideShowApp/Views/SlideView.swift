@@ -13,57 +13,69 @@ struct SlideView: View {
     var isEditable: Bool = true // Controls whether editing features (text and image) are enabled
 
     var body: some View {
-        VStack {
-            // Show the image or placeholder text
-            if let imageView {
-                imageView
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: 300, maxHeight: 300)
-                    .padding()
-            }
-            
-            // Add Image button is shown only if editing is enabled
-            if isEditable {
-                Button(action: {
-                    showImageImporter = true
-                }) {
-                    Label("Add Image", systemImage: "photo")
-                }
-                .fileImporter(isPresented: $showImageImporter, allowedContentTypes: [.image]) { result in
-                    switch result {
-                    case .success(let url):
-                        do {
-                            guard url.startAccessingSecurityScopedResource() else {
-                                throw error("Cannot access file.")
-                            }
-                            defer { url.stopAccessingSecurityScopedResource() }
-                            slide?.image = try CodableImage(url: url)
-                        } catch {
-                            print("Error adding image: \(error.localizedDescription)")
+        GeometryReader { geometry in
+            VStack {
+                Spacer() // Push content to center vertically
+
+                VStack(spacing: 20) {
+                    // Image view (if exists)
+                    if let imageView {
+                        imageView
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 300, maxHeight: 300)
+                            .padding()
+                    }
+
+                    // Add Image button (edit mode only)
+                    if isEditable {
+                        Button(action: {
+                            showImageImporter = true
+                        }) {
+                            Label("Add Image", systemImage: "photo")
                         }
-                    case .failure(let error):
-                        print("Error selecting file: \(error.localizedDescription)")
+                        .fileImporter(isPresented: $showImageImporter, allowedContentTypes: [.image]) { result in
+                            switch result {
+                            case .success(let url):
+                                do {
+                                    guard url.startAccessingSecurityScopedResource() else {
+                                        throw error("Cannot access file.")
+                                    }
+                                    defer { url.stopAccessingSecurityScopedResource() }
+                                    slide?.image = try CodableImage(url: url)
+                                } catch {
+                                    print("Error adding image: \(error.localizedDescription)")
+                                }
+                            case .failure(let error):
+                                print("Error selecting file: \(error.localizedDescription)")
+                            }
+                        }
+                    }
+
+                    // Text section
+                    if isEditable {
+                        TextEditor(text: textBinding)
+                            .font(.title)
+                            .padding()
+                            .border(Color.gray, width: 1)
+                            .frame(maxWidth: geometry.size.width * 0.8)
+                    } else if let slideText = slide?.text, !slideText.isEmpty, slideText != "Enter text here" {
+                        Text(slideText)
+                            .font(.title)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                            .border(Color.gray, width: 1)
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: geometry.size.width * 0.8)
                     }
                 }
-            }
 
-            // Text view is editable only if editing is enabled
-            if isEditable {
-                TextEditor(text: textBinding)
-                    .font(.title)
-                    .padding()
-                    .border(Color.gray, width: 1)
-            } else if let slideText = slide?.text, !slideText.isEmpty, slideText != "Enter text here" {
-                Text(slideText)
-                    .font(.title)
-                    .padding()
-                    .border(Color.gray, width: 1)
-                    .foregroundColor(.secondary)
+                Spacer()
             }
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
     }
-    
+
     private var imageView: Image? {
         guard let image = slide?.image else { return nil }
 #if canImport(UIKit)
@@ -72,7 +84,7 @@ struct SlideView: View {
         return Image(nsImage: image.image)
 #endif
     }
-    
+
     private var textBinding: Binding<String> {
         Binding<String>(
             get: { slide?.text ?? "" },
