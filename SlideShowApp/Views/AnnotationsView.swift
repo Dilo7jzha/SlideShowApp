@@ -14,6 +14,9 @@ struct AnnotationsView: View {
     @State private var newAnnotationLatitude: Double = 0.0
     @State private var newAnnotationLongitude: Double = 0.0
     @State private var newAnnotationOffset: Float = 0.05
+    @State private var selectedUSDZFileName: String? = nil
+    @State private var isFileImporterPresented: Bool = false
+    @State private var selectedUSDZFileURL: URL? = nil
 
     var body: some View {
         VStack {
@@ -43,6 +46,17 @@ struct AnnotationsView: View {
                         Text("Offset:")
                         TextField("Offset", value: $newAnnotationOffset, formatter: formatter(min: 0, max: 1))
                             .modifier(NumberField())
+                    }
+                    
+                    HStack {
+                        Text("3D Model:")
+                        Button(action: {
+                            isFileImporterPresented = true
+                        }) {
+                            Text(selectedUSDZFileName ?? "Select .usdz file")
+                                .foregroundColor(.blue)
+                                .underline()
+                        }
                     }
 
                     Button(action: addAnnotation) {
@@ -93,6 +107,21 @@ struct AnnotationsView: View {
         }
         .padding()
         .navigationTitle("Manage Annotations")
+        .fileImporter(
+            isPresented: $isFileImporterPresented,
+            allowedContentTypes: [.usdz],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                if let selectedURL = urls.first {
+                    selectedUSDZFileName = selectedURL.lastPathComponent
+                    selectedUSDZFileURL = selectedURL
+                }
+            case .failure(let error):
+                print("Failed to select file: \(error)")
+            }
+        }
     }
 
     // Function to add a new annotation
@@ -101,7 +130,9 @@ struct AnnotationsView: View {
             latitude: Angle(degrees: newAnnotationLatitude),
             longitude: Angle(degrees: newAnnotationLongitude),
             offset: newAnnotationOffset,
-            text: newAnnotationText
+            text: newAnnotationText,
+            usdzFileName: selectedUSDZFileName,
+            usdzFileURL: selectedUSDZFileURL
         )
         story.annotations.append(newAnnotation)
         clearNewAnnotationFields()
@@ -113,6 +144,7 @@ struct AnnotationsView: View {
         newAnnotationLatitude = 0.0
         newAnnotationLongitude = 0.0
         newAnnotationOffset = 0.05
+        selectedUSDZFileName = nil
     }
 
     // Function to delete an annotation

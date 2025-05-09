@@ -23,6 +23,9 @@ struct Annotation: Identifiable, Codable, Hashable {
 
     /// Entity to place on globe, loaded from app bundle
     var entityName: String? = "Pin_V2"
+
+    var usdzFileName: String?
+    var usdzFileURL: URL?
     
     /// Convert annotation to XYZ for rendering
     func positionOnGlobe(radius: Float) -> SIMD3<Float> {
