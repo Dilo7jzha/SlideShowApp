@@ -87,9 +87,28 @@ struct GlobeView: View {
                     geometryEntity.orientation = annotation.orientation(for: geometryPosition)
                     attachmentEntity.addChild(geometryEntity)
                     
-#warning("Better to scale model instead of applying hardcoded scale here")
-                    geometryEntity.scale = [0.01, 0.01, 0.01]
+                    // Use a more appropriate scale based on globe size
+                    let scaleMultiplier: Float = 0.01 / appModel.globe.radius * 0.2
+                    geometryEntity.scale = [scaleMultiplier, scaleMultiplier, scaleMultiplier]
                 }
+            }
+            
+            // Handle any already displayed 3D models by repositioning them
+            if let usdzFileName = annotation.usdzFileName,
+               let modelEntity = appModel.globeEntity?.findEntity(named: "annotationModel_\(annotation.id)") {
+                
+                // Recalculate position for any existing 3D model
+                let basePosition = annotation.positionOnGlobe(radius: appModel.globe.radius)
+                let normalVector = normalize(basePosition)
+                
+                // Use the modelOffset property for proper positioning
+                let finalPosition = basePosition + normalVector * annotation.modelOffset
+                
+                // Update the position
+                modelEntity.position = finalPosition
+                
+                // Update orientation to face outward from the globe
+                modelEntity.orientation = annotation.orientation(for: basePosition)
             }
         }
     }

@@ -62,12 +62,33 @@ struct GlobeAttachmentView: View {
         do {
             let model = try await Entity.load(contentsOf: url)
             model.name = modelName
-            model.scale = [0.02, 0.02, 0.02]
+            
+            // Adjust scale based on globe size to maintain proportions
+            let scaleMultiplier: Float = 0.015 // Reduced from 0.02
+            model.scale = [scaleMultiplier, scaleMultiplier, scaleMultiplier]
 
-            let position = positionOnGlobe(latitude: annotation.latitude, longitude: annotation.longitude) + [0, 0.05, 0]
-            model.position = position
-
-            globeEntity.addChild(model)
+            // Calculate position on globe surface
+            let basePosition = positionOnGlobe(latitude: annotation.latitude, longitude: annotation.longitude, radius: appModel.globe.radius)
+            
+            // Calculate a much shorter offset from the globe surface
+            // This is the key change to bring the model closer to the globe
+            let offsetDistance: Float = 0.015 // Previously was effectively 0.05
+            
+            // Calculate normal vector from globe center to the position
+            let normalVector = normalize(basePosition)
+            
+            // Apply the offset along the normal vector
+            let finalPosition = basePosition + normalVector * offsetDistance
+            
+            model.position = finalPosition
+            
+            // Orient the model to face outward from the globe
+            let orientation = annotation.orientation(for: basePosition)
+            model.orientation = orientation
+            
+            // Instead of adding to globeEntity directly, add to stateEntity
+            // This keeps the model properly attached during globe rotation
+            globeEntity.stateEntity.addChild(model)
             isModelVisible = true
         } catch {
             print("Failed to load 3D model: \(error)")

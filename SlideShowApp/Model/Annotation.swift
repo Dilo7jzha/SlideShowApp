@@ -15,8 +15,11 @@ struct Annotation: Identifiable, Codable, Hashable {
     var latitude: Angle
     var longitude: Angle
     
-    /// Offset from the globe surface
+    /// Offset from the globe surface for the text label
     var offset: Float = 0.03
+    
+    /// Offset from the globe surface for 3D models
+    var modelOffset: Float = 0.015
     
     /// Annotation text
     var text: String
@@ -30,6 +33,13 @@ struct Annotation: Identifiable, Codable, Hashable {
     /// Convert annotation to XYZ for rendering
     func positionOnGlobe(radius: Float) -> SIMD3<Float> {
         SphericalCoordinates.latLonToXYZ(latitude: latitude, longitude: longitude, radius: Double(radius))
+    }
+    
+    /// Get position with additional offset for 3D models
+    func modelPositionOnGlobe(radius: Float) -> SIMD3<Float> {
+        let basePosition = positionOnGlobe(radius: radius)
+        let normalVector = normalize(basePosition)
+        return basePosition + normalVector * modelOffset
     }
     
     func orientation(for position: SIMD3<Float>) -> simd_quatf {

@@ -14,6 +14,7 @@ struct AnnotationsView: View {
     @State private var newAnnotationLatitude: Double = 0.0
     @State private var newAnnotationLongitude: Double = 0.0
     @State private var newAnnotationOffset: Float = 0.05
+    @State private var newAnnotationModelOffset: Float = 0.015
     @State private var selectedUSDZFileName: String? = nil
     @State private var isFileImporterPresented: Bool = false
     @State private var selectedUSDZFileURL: URL? = nil
@@ -43,7 +44,7 @@ struct AnnotationsView: View {
                     }
 
                     HStack {
-                        Text("Offset:")
+                        Text("Label Offset:")
                         TextField("Offset", value: $newAnnotationOffset, formatter: formatter(min: 0, max: 1))
                             .modifier(NumberField())
                     }
@@ -56,6 +57,16 @@ struct AnnotationsView: View {
                             Text(selectedUSDZFileName ?? "Select .usdz file")
                                 .foregroundColor(.blue)
                                 .underline()
+                        }
+                    }
+                    
+                    if selectedUSDZFileName != nil {
+                        HStack {
+                            Text("Model Offset:")
+                            TextField("Model Offset", value: $newAnnotationModelOffset, formatter: formatter(min: 0, max: 0.5))
+                                .modifier(NumberField())
+                            Slider(value: $newAnnotationModelOffset, in: 0.001...0.05)
+                                .labelsHidden()
                         }
                     }
 
@@ -87,9 +98,19 @@ struct AnnotationsView: View {
                             }
 
                             HStack {
-                                Text("Offset:")
+                                Text("Label Offset:")
                                 TextField("Offset", value: annotationOffsetBinding(for: annotation.id), formatter: formatter(min: 0, max: 1))
                                     .modifier(NumberField())
+                            }
+                            
+                            if annotation.usdzFileName != nil {
+                                HStack {
+                                    Text("Model Offset:")
+                                    TextField("Model Offset", value: annotationModelOffsetBinding(for: annotation.id), formatter: formatter(min: 0, max: 0.5))
+                                        .modifier(NumberField())
+                                    Slider(value: annotationModelOffsetBinding(for: annotation.id), in: 0.001...0.05)
+                                        .labelsHidden()
+                                }
                             }
 
                             Button(action: { deleteAnnotation(id: annotation.id) }) {
@@ -126,7 +147,7 @@ struct AnnotationsView: View {
 
     // Function to add a new annotation
     private func addAnnotation() {
-        let newAnnotation = Annotation(
+        var newAnnotation = Annotation(
             latitude: Angle(degrees: newAnnotationLatitude),
             longitude: Angle(degrees: newAnnotationLongitude),
             offset: newAnnotationOffset,
@@ -134,6 +155,12 @@ struct AnnotationsView: View {
             usdzFileName: selectedUSDZFileName,
             usdzFileURL: selectedUSDZFileURL
         )
+        
+        // Set model offset if we have a 3D model
+        if selectedUSDZFileName != nil {
+            newAnnotation.modelOffset = newAnnotationModelOffset
+        }
+        
         story.annotations.append(newAnnotation)
         clearNewAnnotationFields()
     }
@@ -144,6 +171,7 @@ struct AnnotationsView: View {
         newAnnotationLatitude = 0.0
         newAnnotationLongitude = 0.0
         newAnnotationOffset = 0.05
+        newAnnotationModelOffset = 0.015
         selectedUSDZFileName = nil
     }
 
@@ -202,6 +230,17 @@ struct AnnotationsView: View {
             set: { newValue in
                 if let index = story.annotations.firstIndex(where: { $0.id == id }) {
                     story.annotations[index].offset = newValue
+                }
+            }
+        )
+    }
+    
+    private func annotationModelOffsetBinding(for id: UUID) -> Binding<Float> {
+        Binding(
+            get: { story.annotations.first { $0.id == id }?.modelOffset ?? 0.015 },
+            set: { newValue in
+                if let index = story.annotations.firstIndex(where: { $0.id == id }) {
+                    story.annotations[index].modelOffset = newValue
                 }
             }
         )
