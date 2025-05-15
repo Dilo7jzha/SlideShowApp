@@ -73,8 +73,11 @@ struct GlobeView: View {
             let attachmentEntity = Entity()
             attachmentEntities?.addChild(attachmentEntity)
             
-            // view entity
-            let viewPosition = annotation.positionOnGlobe(radius: appModel.globe.radius + annotation.offset)
+            // view entity - adjust position based on whether it has a description
+            let additionalOffset: Float = annotation.description.isEmpty ? 0 : 0.01
+            let viewOffset = annotation.offset + additionalOffset
+            let viewPosition = annotation.positionOnGlobe(radius: appModel.globe.radius + viewOffset)
+            
             viewEntity.position = viewPosition
             viewEntity.components.set(BillboardComponent())
             attachmentEntity.addChild(viewEntity)

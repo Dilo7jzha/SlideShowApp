@@ -11,6 +11,7 @@ struct AnnotationsView: View {
     @Binding var story: Story // Access to all annotations in the story
     @Binding var isPresented: Bool
     @State private var newAnnotationText: String = ""
+    @State private var newAnnotationDescription: String = ""
     @State private var newAnnotationLatitude: Double = 0.0
     @State private var newAnnotationLongitude: Double = 0.0
     @State private var newAnnotationOffset: Float = 0.05
@@ -24,8 +25,12 @@ struct AnnotationsView: View {
             // Form for creating a new annotation
             Form {
                 Section(header: Text("Add New Annotation")) {
-                    TextField("Annotation Text", text: $newAnnotationText)
+                    TextField("Annotation Title", text: $newAnnotationText)
                         .textFieldStyle(.roundedBorder)
+                        
+                    TextField("Description (optional)", text: $newAnnotationDescription)
+                        .textFieldStyle(.roundedBorder)
+                        .lineLimit(5)
 
                     HStack {
                         Text("Latitude:")
@@ -82,8 +87,12 @@ struct AnnotationsView: View {
                 Section(header: Text("Existing Annotations")) {
                     ForEach(story.annotations) { annotation in
                         VStack(alignment: .leading) {
-                            TextField("Text", text: annotationTextBinding(for: annotation.id))
+                            TextField("Title", text: annotationTextBinding(for: annotation.id))
                                 .textFieldStyle(.roundedBorder)
+                                
+                            TextField("Description", text: annotationDescriptionBinding(for: annotation.id))
+                                .textFieldStyle(.roundedBorder)
+                                .lineLimit(5)
 
                             HStack {
                                 Text("Latitude:")
@@ -152,6 +161,7 @@ struct AnnotationsView: View {
             longitude: Angle(degrees: newAnnotationLongitude),
             offset: newAnnotationOffset,
             text: newAnnotationText,
+            description: newAnnotationDescription,
             usdzFileName: selectedUSDZFileName,
             usdzFileURL: selectedUSDZFileURL
         )
@@ -168,6 +178,7 @@ struct AnnotationsView: View {
     // Function to clear the new annotation form
     private func clearNewAnnotationFields() {
         newAnnotationText = ""
+        newAnnotationDescription = ""
         newAnnotationLatitude = 0.0
         newAnnotationLongitude = 0.0
         newAnnotationOffset = 0.05
@@ -197,6 +208,17 @@ struct AnnotationsView: View {
             set: { newValue in
                 if let index = story.annotations.firstIndex(where: { $0.id == id }) {
                     story.annotations[index].text = newValue
+                }
+            }
+        )
+    }
+    
+    private func annotationDescriptionBinding(for id: UUID) -> Binding<String> {
+        Binding(
+            get: { story.annotations.first { $0.id == id }?.description ?? "" },
+            set: { newValue in
+                if let index = story.annotations.firstIndex(where: { $0.id == id }) {
+                    story.annotations[index].description = newValue
                 }
             }
         )

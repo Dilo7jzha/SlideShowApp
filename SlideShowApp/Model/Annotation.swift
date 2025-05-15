@@ -21,8 +21,14 @@ struct Annotation: Identifiable, Codable, Hashable {
     /// Offset from the globe surface for 3D models
     var modelOffset: Float = 0.015
     
-    /// Annotation text
+    /// Annotation text (title)
     var text: String
+    
+    /// Annotation description (shown when expanded)
+    var description: String = ""
+    
+    /// Image names for the annotation (shown when expanded)
+    var imageNames: [String] = []
 
     /// Entity to place on globe, loaded from app bundle
     var entityName: String? = "Pin_V2"

@@ -12,8 +12,23 @@ struct GlobeAttachmentView: View {
     let annotation: Annotation
     @Environment(AppModel.self) private var appModel
     @State private var isModelVisible = false
-
+    @State private var showingMoreInfo = false
+    @Namespace private var animation
+    
     var body: some View {
+        VStack {
+            if annotation.description.isEmpty {
+                // Simple view for annotations without descriptions
+                simpleView
+            } else {
+                // Expandable view for annotations with descriptions
+                expandableView
+            }
+        }
+    }
+    
+    // Simple view for annotations without descriptions
+    private var simpleView: some View {
         Group {
             if let fileName = annotation.usdzFileName {
                 Button(action: {
@@ -30,6 +45,82 @@ struct GlobeAttachmentView: View {
                 Text(annotation.text)
                     .font(.title3)
                     .padding(6)
+            }
+        }
+        .glassBackgroundEffect()
+    }
+    
+    // Expandable view for annotations with descriptions
+    private var expandableView: some View {
+        ZStack(alignment: .center) {
+            if !showingMoreInfo {
+                // Collapsed state
+                Group {
+                    if let fileName = annotation.usdzFileName {
+                        Button(action: {
+                            withAnimation(.spring) {
+                                showingMoreInfo.toggle()
+                            }
+                        }) {
+                            Text(annotation.text)
+                                .matchedGeometryEffect(id: "title", in: animation)
+                                .font(.title3)
+                                .padding(6)
+                        }
+                        .buttonStyle(.borderedProminent)
+                    } else {
+                        Text(annotation.text)
+                            .matchedGeometryEffect(id: "title", in: animation)
+                            .font(.title3)
+                            .padding(6)
+                            .onTapGesture {
+                                withAnimation(.spring) {
+                                    showingMoreInfo.toggle()
+                                }
+                            }
+                    }
+                }
+            } else {
+                // Expanded state
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(annotation.text)
+                        .matchedGeometryEffect(id: "title", in: animation)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    
+                    Text(annotation.description)
+                        .font(.body)
+                    
+                    if let fileName = annotation.usdzFileName {
+                        Button("Show 3D Model") {
+                            Task {
+                                await toggle3DModel(named: annotation.usdzFileName ?? "unknown")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    
+                    if !annotation.imageNames.isEmpty {
+                        ScrollView(.horizontal) {
+                            HStack {
+                                ForEach(annotation.imageNames, id: \.self) { imageName in
+                                    Image(imageName)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 100, height: 100)
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                }
+                            }
+                        }
+                    }
+                }
+                .frame(width: 300)
+                .padding()
+                .onTapGesture {
+                    withAnimation(.spring) {
+                        showingMoreInfo.toggle()
+                    }
+                }
             }
         }
         .glassBackgroundEffect()
@@ -70,9 +161,8 @@ struct GlobeAttachmentView: View {
             // Calculate position on globe surface
             let basePosition = positionOnGlobe(latitude: annotation.latitude, longitude: annotation.longitude, radius: appModel.globe.radius)
             
-            // Calculate a much shorter offset from the globe surface
-            // This is the key change to bring the model closer to the globe
-            let offsetDistance: Float = 0.015 // Previously was effectively 0.05
+            // Use the model offset from annotation
+            let offsetDistance: Float = annotation.modelOffset
             
             // Calculate normal vector from globe center to the position
             let normalVector = normalize(basePosition)
@@ -86,8 +176,7 @@ struct GlobeAttachmentView: View {
             let orientation = annotation.orientation(for: basePosition)
             model.orientation = orientation
             
-            // Instead of adding to globeEntity directly, add to stateEntity
-            // This keeps the model properly attached during globe rotation
+            // Add to stateEntity to keep properly attached during globe rotation
             globeEntity.stateEntity.addChild(model)
             isModelVisible = true
         } catch {
