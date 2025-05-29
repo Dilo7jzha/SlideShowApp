@@ -37,14 +37,14 @@ struct GlobeAttachmentView: View {
                     }
                 }) {
                     Text(annotation.text)
-                        .font(.title3)
-                        .padding(6)
+                        .font(.caption)
+                        .padding(3)
                 }
                 .buttonStyle(.borderedProminent)
             } else {
                 Text(annotation.text)
-                    .font(.title3)
-                    .padding(6)
+                    .font(.caption)
+                    .padding(3)
             }
         }
         .glassBackgroundEffect()
@@ -54,42 +54,33 @@ struct GlobeAttachmentView: View {
     private var expandableView: some View {
         ZStack(alignment: .center) {
             if !showingMoreInfo {
-                // Collapsed state
-                Group {
-                    if let fileName = annotation.usdzFileName {
-                        Button(action: {
-                            withAnimation(.spring) {
-                                showingMoreInfo.toggle()
-                            }
-                        }) {
-                            Text(annotation.text)
-                                .matchedGeometryEffect(id: "title", in: animation)
-                                .font(.title3)
-                                .padding(6)
-                        }
-                        .buttonStyle(.borderedProminent)
-                    } else {
-                        Text(annotation.text)
-                            .matchedGeometryEffect(id: "title", in: animation)
-                            .font(.title3)
-                            .padding(6)
-                            .onTapGesture {
-                                withAnimation(.spring) {
-                                    showingMoreInfo.toggle()
-                                }
-                            }
+                // Collapsed state - make both 3D and non-3D annotations look the same
+                Button(action: {
+                    withAnimation(.spring) {
+                        showingMoreInfo.toggle()
                     }
+                }) {
+                    Text(annotation.text)
+                        .matchedGeometryEffect(id: "title", in: animation)
+                        .font(.caption)
+                        .padding(3)
+                }
+                .buttonStyle(.plain) // Use plain style to avoid extra padding
+                .background {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(.ultraThinMaterial)
+                        .stroke(.secondary, lineWidth: 0.5)
                 }
             } else {
                 // Expanded state
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text(annotation.text)
                         .matchedGeometryEffect(id: "title", in: animation)
-                        .font(.title2)
+                        .font(.title3)
                         .fontWeight(.semibold)
                     
                     Text(annotation.description)
-                        .font(.body)
+                        .font(.caption)
                     
                     if let fileName = annotation.usdzFileName {
                         Button("Show 3D Model") {
@@ -98,6 +89,7 @@ struct GlobeAttachmentView: View {
                             }
                         }
                         .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
                     }
                     
                     if !annotation.imageNames.isEmpty {
@@ -107,15 +99,15 @@ struct GlobeAttachmentView: View {
                                     Image(imageName)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
-                                        .frame(width: 100, height: 100)
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .frame(width: 60, height: 60)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
                                 }
                             }
                         }
                     }
                 }
-                .frame(width: 300)
-                .padding()
+                .frame(width: 200)
+                .padding(18)
                 .onTapGesture {
                     withAnimation(.spring) {
                         showingMoreInfo.toggle()

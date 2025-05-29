@@ -24,8 +24,8 @@ struct AnnotationsView: View {
         VStack {
             // Form for creating a new annotation
             Form {
-                Section(header: Text("Add New Annotation")) {
-                    TextField("Annotation Title", text: $newAnnotationText)
+                Section(header: Text("Add New Info Panel")) {
+                    TextField("Info Panel Title", text: $newAnnotationText)
                         .textFieldStyle(.roundedBorder)
                         
                     TextField("Description (optional)", text: $newAnnotationDescription)
@@ -76,7 +76,7 @@ struct AnnotationsView: View {
                     }
 
                     Button(action: addAnnotation) {
-                        Label("Add Annotation", systemImage: "plus")
+                        Label("Add Info Panel", systemImage: "plus")
                     }
                     .disabled(newAnnotationText.isEmpty) // Prevent adding empty annotations
                 }
@@ -84,7 +84,7 @@ struct AnnotationsView: View {
 
             // List of existing annotations
             List {
-                Section(header: Text("Existing Annotations")) {
+                Section(header: Text("Existing Info Panels")) {
                     ForEach(story.annotations) { annotation in
                         VStack(alignment: .leading) {
                             TextField("Title", text: annotationTextBinding(for: annotation.id))
@@ -136,7 +136,7 @@ struct AnnotationsView: View {
             isPresented = false
         }
         .padding()
-        .navigationTitle("Manage Annotations")
+        .navigationTitle("Manage Info Panels")
         .fileImporter(
             isPresented: $isFileImporterPresented,
             allowedContentTypes: [.usdz],

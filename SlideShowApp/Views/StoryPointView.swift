@@ -19,7 +19,7 @@ struct StoryPointView: View {
             Picker("", selection: $selectedTab) {
                 Label("Slide", systemImage: "text.below.photo").tag(0)
                 Label("Globe Attributes", systemImage: "globe").tag(1)
-                Label("Annotations", systemImage: "pin").tag(2) //Annotations tab
+                Label("Info Panels", systemImage: "pin").tag(2) //Annotations tab
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 400)
