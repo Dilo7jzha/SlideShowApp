@@ -45,6 +45,7 @@ class AppModel {
     // MARK: - Image Viewer Window Management
     
     var currentImageForViewer: CodableImage? = nil
+    var isImageViewerOpen: Bool = false // Track if image viewer is currently open
     
     #if os(macOS)
     static let imageViewerWindowID = "ImageViewerWindow"

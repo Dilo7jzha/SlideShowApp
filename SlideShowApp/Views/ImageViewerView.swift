@@ -74,6 +74,7 @@ struct ImageViewerView: View {
                     HStack {
 #if os(iOS)
                         Button("Done") {
+                            closeImageViewer()
                             dismiss()
                         }
                         .foregroundColor(.white)
@@ -101,6 +102,14 @@ struct ImageViewerView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 32))
         .ignoresSafeArea(.all)
+        .onAppear {
+            // Mark image viewer as open when view appears
+            appModel.isImageViewerOpen = true
+        }
+        .onDisappear {
+            // Mark image viewer as closed when view disappears
+            closeImageViewer()
+        }
     }
     
     private func resetImageView() {
@@ -109,6 +118,12 @@ struct ImageViewerView: View {
             offset = .zero
             lastOffset = .zero
         }
+    }
+    
+    private func closeImageViewer() {
+        // Clear the current image reference and mark as closed
+        appModel.currentImageForViewer = nil
+        appModel.isImageViewerOpen = false
     }
     
     private func closeWindow() {
@@ -121,8 +136,7 @@ struct ImageViewerView: View {
         // Use dismissWindow for visionOS
         dismissWindow(id: "ImageViewer")
 #endif
-        // Clear the current image reference
-        appModel.currentImageForViewer = nil
+        closeImageViewer()
     }
     
     private func createImageView() -> Image? {

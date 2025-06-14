@@ -25,8 +25,8 @@ struct SlideView: View {
                 Spacer() // Push content to center vertically
 
                 VStack(spacing: 20) {
-                    // Image view (if exists)
-                    if let imageView {
+                    // Image view (if exists and image viewer is not open)
+                    if let imageView, !appModel.isImageViewerOpen {
                         imageView
                             .resizable()
                             .scaledToFit()
@@ -37,6 +37,11 @@ struct SlideView: View {
                             }
                             .help("Tap to view image in separate window") // macOS tooltip
                             .accessibilityLabel("Slide image, tap to open in separate window")
+                    }
+                    
+                    // Show placeholder when image viewer is open
+                    if slide?.image != nil && appModel.isImageViewerOpen {
+
                     }
 
                     // Add Image button (edit mode only)
@@ -103,6 +108,7 @@ struct SlideView: View {
         guard let image = slide?.image else { return }
         
         appModel.currentImageForViewer = image
+        appModel.isImageViewerOpen = true // Mark image viewer as open
         
 #if os(macOS)
         openWindow(id: AppModel.imageViewerWindowID)
