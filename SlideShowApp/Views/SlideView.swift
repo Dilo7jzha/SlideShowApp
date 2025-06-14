@@ -10,6 +10,13 @@ import SwiftUI
 struct SlideView: View {
     @Binding var slide: Slide?
     @State private var showImageImporter = false
+    @State private var showImageViewer = false // Fallback for iOS
+    @Environment(AppModel.self) private var appModel
+    
+#if os(macOS) || os(visionOS)
+    @Environment(\.openWindow) private var openWindow
+#endif
+    
     var isEditable: Bool = true // Controls whether editing features (text and image) are enabled
 
     var body: some View {
@@ -25,6 +32,11 @@ struct SlideView: View {
                             .scaledToFit()
                             .frame(maxWidth: 300, maxHeight: 300)
                             .padding()
+                            .onTapGesture {
+                                openImageViewer()
+                            }
+                            .help("Tap to view image in separate window") // macOS tooltip
+                            .accessibilityLabel("Slide image, tap to open in separate window")
                     }
 
                     // Add Image button (edit mode only)
@@ -74,6 +86,32 @@ struct SlideView: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
+#if os(iOS)
+        // Fallback to sheet on iOS since separate windows aren't available
+        .sheet(isPresented: $showImageViewer) {
+            NavigationView {
+                if let image = slide?.image {
+                    ImageViewerView(image: image)
+                        .environment(appModel)
+                }
+            }
+        }
+#endif
+    }
+    
+    private func openImageViewer() {
+        guard let image = slide?.image else { return }
+        
+        appModel.currentImageForViewer = image
+        
+#if os(macOS)
+        openWindow(id: AppModel.imageViewerWindowID)
+#elseif os(visionOS)
+        openWindow(id: "ImageViewer")
+#elseif os(iOS)
+        // Fall back to sheet presentation on iOS
+        showImageViewer = true
+#endif
     }
 
     private var imageView: Image? {

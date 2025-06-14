@@ -42,6 +42,14 @@ class AppModel {
         var showAttachment: Bool = false
     }
 
+    // MARK: - Image Viewer Window Management
+    
+    var currentImageForViewer: CodableImage? = nil
+    
+    #if os(macOS)
+    static let imageViewerWindowID = "ImageViewerWindow"
+    #endif
+
     // MARK: - Error Handling
 
     var errorToShowInAlert: Error? = nil {
