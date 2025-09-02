@@ -47,25 +47,25 @@ struct GlobeView: View {
         .onChange(of: appModel.story) {
             updateGlobeTransformation()
         }
-        .onChange(of: appModel.selectedStoryPointID) {
+        .onChange(of: appModel.selectedStoryNodeID) {
             updateGlobeTransformation()
         }
         .globeGestures(model: appModel)
     }
     
     private func updateGlobeTransformation() {
-        if let accumulatedGlobeState = try? appModel.story.accumulatedGlobeState(for: appModel.selectedStoryPointID)  {
+        if let accumulatedGlobeState = try? appModel.story.accumulatedGlobeState(for: appModel.selectedStoryNodeID)  {
             appModel.globeEntity?.applyState(accumulatedGlobeState)
         }
     }
     
-    /// Updates annotation positions dynamically when the selected story point changes.
+    /// Updates annotation positions dynamically when the selected story node changes.
     private func updateAnnotationPosition(attachments: RealityViewAttachments) async {
         attachmentEntities?.children.removeAll()
 
-        guard let storyPoint = appModel.story.storyPoints.first(where: { $0.id == appModel.selectedStoryPointID }) else { return }
+        guard let storyNode = appModel.story.storyNodes.first(where: { $0.id == appModel.selectedStoryNodeID }) else { return }
         
-        for annotationID in storyPoint.annotationIDs {
+        for annotationID in storyNode.annotationIDs {
             guard let annotation = appModel.story.annotations.first(where: { $0.id == annotationID }),
                   let viewEntity = attachments.entity(for: annotation.id) else { continue }
             

@@ -18,8 +18,8 @@ struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
 #endif
     
-    @State private var showExportJSON = false // true when the story points are to be exported to a JSON file
-    @State private var showImportJSON = false // true when the story points are to be imported from a JSON file
+    @State private var showExportJSON = false // true when the story nodes are to be exported to a JSON file
+    @State private var showImportJSON = false // true when the story nodes are to be imported from a JSON file
     
     var body: some View {
         NavigationSplitView {
@@ -32,7 +32,7 @@ struct ContentView: View {
             isPresented: $showExportJSON,
             document: jsonDocument,
             contentType: .json,
-            defaultFilename: "Story Points",
+            defaultFilename: "Story Nodes",
             onCompletion: { result in
                 if case .failure(let error) = result {
                     appModel.errorToShowInAlert = error
@@ -60,27 +60,27 @@ struct ContentView: View {
     
     @ViewBuilder
     private var navigationView: some View {
-        List(selection: Bindable(appModel).selectedStoryPointID) {
-            ForEach(appModel.story.storyPoints) { storyPoint in
-                Text(storyPoint.name)
+        List(selection: Bindable(appModel).selectedStoryNodeID) {
+            ForEach(appModel.story.storyNodes) {
+                Text($0.name)
             }
-            .onDelete { appModel.story.storyPoints.remove(atOffsets: $0) }
-            .onMove { appModel.story.storyPoints.move(fromOffsets: $0, toOffset: $1) }
+            .onDelete { appModel.story.storyNodes.remove(atOffsets: $0) }
+            .onMove { appModel.story.storyNodes.move(fromOffsets: $0, toOffset: $1) }
         }
         .listStyle(.sidebar)
-        .navigationTitle("Story Points")
+        .navigationTitle("Story Nodes")
         .toolbar {
-            Button(action: addStoryPoint) {
-                Label("Add Story Point", systemImage: "plus")
+            Button(action: addStoryNode) {
+                Label("Add Story Node", systemImage: "plus")
             }
 
 #if os(visionOS)
             EditButton()
-                .disabled(!appModel.story.hasStoryPoints)
+                .disabled(!appModel.story.hasStoryNodes)
             ToggleImmersiveSpaceButton()
 #else
-            Button(action: deleteStoryPoint, label: { Label("Delete Story Point", systemImage: "minus") })
-                .disabled(appModel.selectedStoryPointID == nil)
+            Button(action: deleteStoryNode, label: { Label("Delete Story Node", systemImage: "minus") })
+                .disabled(appModel.selectedStoryNodeID == nil)
             
             Button(action: {
                 openWindow(id: AppModel.macOSGlobeViewID)
@@ -98,7 +98,7 @@ struct ContentView: View {
             Button("Export") {
                 showExportJSON.toggle()
             }
-            .disabled(!appModel.story.hasStoryPoints)
+            .disabled(!appModel.story.hasStoryNodes)
             
             Button("Import") {
                 showImportJSON.toggle()
@@ -110,37 +110,37 @@ struct ContentView: View {
                 Image(systemName: "play.circle")
                     .font(.largeTitle)
             }
-            .disabled(!appModel.story.hasStoryPoints)
+            .disabled(!appModel.story.hasStoryNodes)
         }
         .padding()
     }
     
     @ViewBuilder
     private var detailView: some View {
-        if let selectedStoryPointID = appModel.selectedStoryPointID,
-           let index = appModel.story.storyPointIndex(for: selectedStoryPointID) {
-            StoryPointView(storyPoint: Bindable(appModel).story.storyPoints[index],
+        if let selectedStoryNodeID = appModel.selectedStoryNodeID,
+           let index = appModel.story.storyNodeIndex(for: selectedStoryNodeID) {
+            StoryNodeView(storyNode: Bindable(appModel).story.storyNodes[index],
                            story: Bindable(appModel).story)
         } else {
-            let message = appModel.story.hasStoryPoints ? "Select a Story Point" : "Add a Story Point"
+            let message = appModel.story.hasStoryNodes ? "Select a Story Node" : "Add a Story Node"
             Text(message)
                 .font(.title)
                 .foregroundColor(.white)
         }
     }
 
-    private func addStoryPoint() {
-        let storyPointNumber = appModel.story.numberOfStoryPoints + 1
-        let storyPoint = StoryPoint(
-            name: "Story Point \(storyPointNumber)",
+    private func addStoryNode() {
+        let storyNodeNumber = appModel.story.numberOfStoryNodes + 1
+        let storyNode = StoryNode(
+            name: "Story Node \(storyNodeNumber)",
             slide: Slide(text: "Enter text here"),
             globeState: GlobeState()
         )
-        appModel.story.addStoryPoint(storyPoint)
+        appModel.story.addStoryNode(storyNode)
         
-        // Set the newly added story point as selected
+        // Set the newly added story node as selected
         Task { @MainActor in
-            appModel.selectedStoryPointID = storyPoint.id // select the new story point
+            appModel.selectedStoryNodeID = storyNode.id // select the new story node
         }
         
     #if os(visionOS)
@@ -148,9 +148,9 @@ struct ContentView: View {
     #endif
     }
     
-    private func deleteStoryPoint() {
-        appModel.story.removeStoryPoint(with: appModel.selectedStoryPointID)
-        appModel.selectedStoryPointID = nil
+    private func deleteStoryNode() {
+        appModel.story.removeStoryNode(with: appModel.selectedStoryNodeID)
+        appModel.selectedStoryNodeID = nil
     }
     
     private var jsonDocument: JSONDocument? {

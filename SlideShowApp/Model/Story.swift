@@ -12,39 +12,39 @@ struct Story: Identifiable, Codable, Hashable {
 
     var name = "Unnamed Story"
 
-    var storyPoints: [StoryPoint] = []
+    var storyNodes: [StoryNode] = []
     var annotations: [Annotation] = []
     
-    var hasStoryPoints: Bool {
-        !storyPoints.isEmpty
+    var hasStoryNodes: Bool {
+        !storyNodes.isEmpty
     }
     
-    func storyPoint(with id: StoryPoint.ID?) -> StoryPoint? {
-        storyPoints.first(where: { $0.id == id })
+    func storyNode(with id: StoryNode.ID?) -> StoryNode? {
+        storyNodes.first(where: { $0.id == id })
     }
     
-    func storyPointIndex(for id: StoryPoint.ID?) -> Array.Index? {
-        storyPoints.firstIndex(where: { $0.id == id })
+    func storyNodeIndex(for id: StoryNode.ID?) -> Array.Index? {
+        storyNodes.firstIndex(where: { $0.id == id })
     }
     
-    var numberOfStoryPoints: Int {
-        storyPoints.count
+    var numberOfStoryNodes: Int {
+        storyNodes.count
     }
     
-    mutating func removeStoryPoint(with id: StoryPoint.ID?) {
-        storyPoints.removeAll(where: { $0.id == id })
+    mutating func removeStoryNode(with id: StoryNode.ID?) {
+        storyNodes.removeAll(where: { $0.id == id })
     }
     
-    mutating func addStoryPoint(_ storyPoint: StoryPoint) {
-        storyPoints.append(storyPoint)
+    mutating func addStoryNode(_ storyNode: StoryNode) {
+        storyNodes.append(storyNode)
     }
     
-    /// Find the GlobeState created by the n first story points, where n is the index of the  story point with a given ID.
-    /// - Parameter lastStoryPointID: ID of the StoryPoint for which the accumulated GlobeState is returned.
+    /// Find the GlobeState created by the n first story nodes, where n is the index of the  story node with a given ID.
+    /// - Parameter lastStoryNodeID: ID of the StoryNode for which the accumulated GlobeState is returned.
     /// - Returns: GlobeState
-    func accumulatedGlobeState(for lastStoryPointID: StoryPoint.ID?) throws -> GlobeState {
-        guard storyPoint(with: lastStoryPointID) != nil else {
-            throw error("StoryPoint not found.")
+    func accumulatedGlobeState(for lastStoryNodeID: StoryNode.ID?) throws -> GlobeState {
+        guard storyNode(with: lastStoryNodeID) != nil else {
+            throw error("StoryNode not found.")
         }
         var state = GlobeState(
             position: [0, 0, 0],
@@ -52,24 +52,21 @@ struct Story: Identifiable, Codable, Hashable {
             focusLongitude: .zero,
             scale: 1
         )
-        for storyPoint in storyPoints {
-            if let position = storyPoint.globeState?.position {
+        for storyNode in storyNodes {
+            if let position = storyNode.globeState?.position {
                 state.position = position
             }
-            if let scale = storyPoint.globeState?.scale {
+            if let scale = storyNode.globeState?.scale {
                 state.scale = scale
             }
-            if let focusLatitude = storyPoint.globeState?.focusLatitude {
+            if let focusLatitude = storyNode.globeState?.focusLatitude {
                 state.focusLatitude = focusLatitude
             }
-            if let focusLongitude = storyPoint.globeState?.focusLongitude {
+            if let focusLongitude = storyNode.globeState?.focusLongitude {
                 state.focusLongitude = focusLongitude
             }
             
-            let annotationIDs = storyPoint.annotationIDs
-            let linkedAnnotations = self.annotations.filter { annotationIDs.contains($0.id) }
-            
-            if storyPoint.id == lastStoryPointID {
+            if storyNode.id == lastStoryNodeID {
                 break
             }
         }

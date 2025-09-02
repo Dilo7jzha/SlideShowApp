@@ -1,5 +1,5 @@
 //
-//  StoryPoint.swift
+//  StoryNode.swift
 //  SlideShowApp
 //
 //  Created by Bernhard Jenny on 26/11/2024.
@@ -8,9 +8,9 @@
 import Foundation
 import RealityKit
 
-struct StoryPoint: Identifiable, Hashable, Codable {
+struct StoryNode: Identifiable, Hashable, Codable {
     var id = UUID()
-    var name: String = "Unnamed Story Point"
+    var name: String = "Unnamed Story Node"
     var slide: Slide? = nil
     var globeState: GlobeState? = nil
     var annotationIDs: [UUID] = []

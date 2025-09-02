@@ -27,13 +27,8 @@ class AppModel {
 
     var isPresenting: Bool = false
 
-    /// The ID of the currently selected StoryPoint.
-    var selectedStoryPointID: StoryPoint.ID?
-
-    /// The currently selected StoryPoint.
-    var selectedStoryPoint: StoryPoint? {
-        story.storyPoint(with: selectedStoryPointID)
-    }
+    /// The ID of the currently selected StoryNode.
+    var selectedStoryNodeID: StoryNode.ID?
 
     struct GlobeConfiguration {
         var minScale: Float = 0.5

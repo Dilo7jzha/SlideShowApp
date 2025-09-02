@@ -13,8 +13,8 @@ struct PresentationView: View {
 
     var body: some View {
         VStack {
-            if let currentStoryPoint = appModel.story.storyPoints[safe: currentIndex] {
-                SlideView(slide: .constant(currentStoryPoint.slide), isEditable: false)
+            if let currentStoryNode = appModel.story.storyNodes[safe: currentIndex] {
+                SlideView(slide: .constant(currentStoryNode.slide), isEditable: false)
                     .padding()
             } else {
                 Text("No slides available")
@@ -26,7 +26,7 @@ struct PresentationView: View {
 
             // Navigation Buttons
             HStack {
-                Button(action: { goToStoryPoint(at: currentIndex - 1) }) {
+                Button(action: { goToStoryNode(at: currentIndex - 1) }) {
                     Label("Previous", systemImage: "arrow.left")
                         .font(.largeTitle)
                         .padding()
@@ -38,7 +38,7 @@ struct PresentationView: View {
 
                 Spacer()
 
-                Button(action: { goToStoryPoint(at: currentIndex + 1) }) {
+                Button(action: { goToStoryNode(at: currentIndex + 1) }) {
                     Label("Next", systemImage: "arrow.right")
                         .font(.largeTitle)
                         .padding()
@@ -46,7 +46,7 @@ struct PresentationView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
-                .disabled(currentIndex >= appModel.story.storyPoints.count - 1)
+                .disabled(currentIndex >= appModel.story.storyNodes.count - 1)
             }
             .padding()
 
@@ -64,10 +64,10 @@ struct PresentationView: View {
         .navigationTitle("Presentation")
     }
 
-    private func goToStoryPoint(at index: Int) {
-        guard index >= 0, index < appModel.story.storyPoints.count else { return }
+    private func goToStoryNode(at index: Int) {
+        guard index >= 0, index < appModel.story.storyNodes.count else { return }
         currentIndex = index
-        appModel.selectedStoryPointID = appModel.story.storyPoints[index].id
+        appModel.selectedStoryNodeID = appModel.story.storyNodes[index].id
     }
 }
 

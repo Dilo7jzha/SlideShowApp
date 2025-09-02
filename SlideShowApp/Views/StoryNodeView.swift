@@ -1,5 +1,5 @@
 //
-//  StoryPointView.swift
+//  StoryNodeView.swift
 //  SlideShowApp
 //
 //  Created by Bernhard Jenny on 26/11/2024.
@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct StoryPointView: View {
-    @Binding var storyPoint: StoryPoint
+struct StoryNodeView: View {
+    @Binding var storyNode: StoryNode
     @Binding var story: Story // Now accessing the story to manage annotations
     @State private var selectedTab = 0
     @State private var showAnnotationsView = false
@@ -27,10 +27,10 @@ struct StoryPointView: View {
             
             switch selectedTab {
             case 0:
-                SlideView(slide: $storyPoint.slide)
+                SlideView(slide: $storyNode.slide)
                     .padding()
             case 1:
-                if let globeState = Binding($storyPoint.globeState) {
+                if let globeState = Binding($storyNode.globeState) {
                     GlobeStateView(globeState: globeState)
                         .padding()
                 } else {
@@ -47,7 +47,7 @@ struct StoryPointView: View {
             
             Spacer(minLength: 0)
         }
-        .navigationTitle(storyPoint.name)
+        .navigationTitle(storyNode.name)
         .toolbar {
             Button("Edit Name", systemImage: "pencil") {
                 showNamePanel.toggle()
@@ -55,11 +55,11 @@ struct StoryPointView: View {
         }
         .sheet(isPresented: $showNamePanel) {
             VStack {
-                Text("Story Point Name")
+                Text("Story Node Name")
                     .font(.title)
                 
-                TextField(text: $storyPoint.name, prompt: Text("Name"), label: {
-                    Text("Story Point Name")
+                TextField(text: $storyNode.name, prompt: Text("Name"), label: {
+                    Text("Story Node Name")
                 })
                 .textFieldStyle(.roundedBorder)
                 .padding()
@@ -103,12 +103,12 @@ struct StoryPointView: View {
     // id binding to track selected annotations
     private func annotationSelectionBinding(for id: UUID) -> Binding<Bool> {
         Binding<Bool>(
-            get: { storyPoint.annotationIDs.contains(id) },
+            get: { storyNode.annotationIDs.contains(id) },
             set: { newValue in
                 if newValue {
-                    storyPoint.annotationIDs.append(id)
+                    storyNode.annotationIDs.append(id)
                 } else {
-                    storyPoint.annotationIDs.removeAll { $0 == id }
+                    storyNode.annotationIDs.removeAll { $0 == id }
                 }
             }
         )
@@ -116,9 +116,9 @@ struct StoryPointView: View {
 }
 
 #Preview {
-    StoryPointView(
-        storyPoint: .constant(StoryPoint(slide: Slide(), globeState: GlobeState(), annotationIDs: [])),
-        story: .constant(Story(storyPoints: [], annotations: [Annotation(latitude: Angle(degrees: 0), longitude: Angle(degrees: 0), offset: 0, text: "Sample Annotation")]))
+    StoryNodeView(
+        storyNode: .constant(StoryNode(slide: Slide(), globeState: GlobeState(), annotationIDs: [])),
+        story: .constant(Story(storyNodes: [], annotations: [Annotation(latitude: Angle(degrees: 0), longitude: Angle(degrees: 0), offset: 0, text: "Sample Annotation")]))
     )
 }
 
