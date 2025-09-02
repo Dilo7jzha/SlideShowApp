@@ -17,49 +17,38 @@ struct PresentationView: View {
                 SlideView(slide: .constant(currentStoryNode.slide), isEditable: false)
                     .padding()
             } else {
-                Text("No slides available")
-                    .font(.headline)
-                    .padding()
+                Spacer()
+                ContentUnavailableView("No Slides", systemImage: "play.rectangle.on.rectangle")
             }
 
             Spacer() // Pushes buttons towards the bottom
 
             // Navigation Buttons
             HStack {
-                Button(action: { goToStoryNode(at: currentIndex - 1) }) {
-                    Label("Previous", systemImage: "arrow.left")
-                        .font(.largeTitle)
-                        .padding()
-                        .frame(maxWidth: .infinity, minHeight: 60)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .disabled(currentIndex <= 0)
-
                 Spacer()
-
-                Button(action: { goToStoryNode(at: currentIndex + 1) }) {
-                    Label("Next", systemImage: "arrow.right")
-                        .font(.largeTitle)
-                        .padding()
-                        .frame(maxWidth: .infinity, minHeight: 60)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+                
+                Group {
+                    Button(action: { goToStoryNode(at: currentIndex - 1) }) {
+                        Label("Previous", systemImage: "arrow.left")
+                    }
+                    .disabled(currentIndex <= 0)
+                    
+                    // Return Button at the Bottom
+                    Button(action: { appModel.isPresenting = false }) {
+                        Label("Return", systemImage: "xmark.circle")
+                    }
+                    .padding(.horizontal)
+                    
+                    Button(action: { goToStoryNode(at: currentIndex + 1) }) {
+                        Label("Next", systemImage: "arrow.right")
+                    }
+                    .disabled(currentIndex >= appModel.story.storyNodes.count - 1)
                 }
-                .disabled(currentIndex >= appModel.story.storyNodes.count - 1)
+                .controlSize(.extraLarge)
+                .labelStyle(.iconOnly)
+                Spacer()
             }
-            .padding()
-
-            // Return Button at the Bottom
-            Button(action: { appModel.isPresenting = false }) {
-                Text("Return")
-                    .font(.largeTitle)
-                    .padding()
-                    .frame(maxWidth: .infinity, minHeight: 60)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .padding(.bottom, 20)
+            .padding(26)
         }
         .navigationTitle("Presentation")
     }
@@ -76,4 +65,10 @@ extension Array {
     subscript(safe index: Int) -> Element? {
         return indices.contains(index) ? self[index] : nil
     }
+}
+
+#Preview{
+    PresentationView()
+        .glassBackgroundEffect()
+        .environment(AppModel())
 }
