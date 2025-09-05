@@ -9,7 +9,7 @@ import SwiftUI
 
 struct StoryNodeView: View {
     @Binding var storyNode: StoryNode
-    @Binding var story: Story // Now accessing the story to manage annotations
+    @Binding var story: Story
     @State private var selectedTab = 0
     @State private var showAnnotationsView = false
     @State private var showNamePanel: Bool = false
@@ -18,8 +18,8 @@ struct StoryNodeView: View {
         VStack {
             Picker("", selection: $selectedTab) {
                 Label("Slide", systemImage: "text.below.photo").tag(0)
-                Label("Globe Attributes", systemImage: "globe").tag(1)
-                Label("Info Panels", systemImage: "pin").tag(2) //Annotations tab
+                Label("Globe", systemImage: "globe").tag(1)
+                Label("Info Panel", systemImage: "pin").tag(2) //Annotations tab
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 400)
@@ -29,6 +29,7 @@ struct StoryNodeView: View {
             case 0:
                 SlideView(slide: $storyNode.slide)
                     .padding()
+                    .padding(.horizontal)
             case 1:
                 if let globeState = Binding($storyNode.globeState) {
                     GlobeStateView(globeState: globeState)

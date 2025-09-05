@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppModel.self) private var appModel
-
+    
 #if os(visionOS)
     @State private var editMode = EditMode.inactive
 #endif
@@ -73,11 +73,10 @@ struct ContentView: View {
             Button(action: addStoryNode) {
                 Label("Add Story Node", systemImage: "plus")
             }
-
+            
 #if os(visionOS)
             EditButton()
                 .disabled(!appModel.story.hasStoryNodes)
-            ToggleImmersiveSpaceButton()
 #else
             Button(action: deleteStoryNode, label: { Label("Delete Story Node", systemImage: "minus") })
                 .disabled(appModel.selectedStoryNodeID == nil)
@@ -94,24 +93,32 @@ struct ContentView: View {
     
     @ViewBuilder
     private var footerView: some View {
-        HStack {
-            Button("Export") {
-                showExportJSON.toggle()
+        HStack(spacing: 24) {
+            Menu {
+                Button("Export Story") {
+                    showExportJSON.toggle()
+                }
+                .disabled(!appModel.story.hasStoryNodes)
+                
+                Button("Import Story") {
+                    showImportJSON.toggle()
+                }
+            } label: {
+                Label("Story File", systemImage: "doc")
+                
             }
-            .disabled(!appModel.story.hasStoryNodes)
             
-            Button("Import") {
-                showImportJSON.toggle()
-            }
+            ToggleImmersiveSpaceButton()
             
             Button(action: {
                 appModel.isPresenting.toggle()
             }) {
-                Image(systemName: "play.circle")
-                    .font(.largeTitle)
+                Label("Story File", systemImage: "play.fill")
+                    .imageScale(.large)
             }
             .disabled(!appModel.story.hasStoryNodes)
         }
+        .labelStyle(.iconOnly)
         .padding()
     }
     
@@ -120,15 +127,14 @@ struct ContentView: View {
         if let selectedStoryNodeID = appModel.selectedStoryNodeID,
            let index = appModel.story.storyNodeIndex(for: selectedStoryNodeID) {
             StoryNodeView(storyNode: Bindable(appModel).story.storyNodes[index],
-                           story: Bindable(appModel).story)
+                          story: Bindable(appModel).story)
         } else {
-            let message = appModel.story.hasStoryNodes ? "Select a Story Node" : "Add a Story Node"
+            let message = appModel.story.hasStoryNodes ? "Select a story node or press the play button." : "Add a Story Node"
             Text(message)
                 .font(.title)
-                .foregroundColor(.white)
         }
     }
-
+    
     private func addStoryNode() {
         let storyNodeNumber = appModel.story.numberOfStoryNodes + 1
         let storyNode = StoryNode(
@@ -143,9 +149,9 @@ struct ContentView: View {
             appModel.selectedStoryNodeID = storyNode.id // select the new story node
         }
         
-    #if os(visionOS)
+#if os(visionOS)
         editMode = .inactive
-    #endif
+#endif
     }
     
     private func deleteStoryNode() {
