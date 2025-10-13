@@ -46,12 +46,7 @@ struct Story: Identifiable, Codable, Hashable {
         guard storyNode(with: lastStoryNodeID) != nil else {
             throw error("StoryNode not found.")
         }
-        var state = GlobeState(
-            position: [0, 0, 0],
-            focusLatitude: .zero,
-            focusLongitude: .zero,
-            scale: 1
-        )
+        var state = GlobeState()
         for storyNode in storyNodes {
             if let position = storyNode.globeState?.position {
                 state.position = position

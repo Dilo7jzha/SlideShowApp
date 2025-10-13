@@ -14,7 +14,69 @@ struct GlobeState: Hashable, Codable {
     var focusLatitude: Angle? = nil
     var focusLongitude: Angle? = nil
     var scale: Float? = nil
-//    var annotations: [Annotation] = []
+
+    init() {
+        self.position = [0, 0, 0]
+        self.focusLatitude = .zero
+        self.focusLongitude = .zero
+        self.scale = 1
+    }
+
+    // MARK: - Codable
+    
+    /// Custom encoding and decoding for compatibility with vision 2: visionOS 26 changed the JSON encoding format of the `Angle` struct.
+    enum CodingKeys: String, CodingKey {
+        case position
+        case focusLatitude
+        case focusLongitude
+        case scale
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        if let positionArray = try container.decodeIfPresent([Float].self, forKey: .position) {
+            if positionArray.count == 3 {
+                self.position = SIMD3<Float>(positionArray[0], positionArray[1], positionArray[2])
+            } else {
+                self.position = nil
+            }
+        } else {
+            self.position = nil
+        }
+        
+        // dictionary format of visionOS 2
+        let latDict = try container.decodeIfPresent([String: Double].self, forKey: .focusLatitude)
+        let lonDict = try container.decodeIfPresent([String: Double].self, forKey: .focusLongitude)
+        if let latDegrees = latDict?["degrees"] {
+            focusLatitude = .degrees(latDegrees)
+        }
+        if let lonDegrees = lonDict?["degrees"] {
+            focusLongitude = .degrees(lonDegrees)
+        }
+        
+        self.scale = try container.decodeIfPresent(Float.self, forKey: .scale)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        if let position {
+            try container.encode([position.x, position.y, position.z], forKey: .position)
+        }
+        
+        // dictionary format of visionOS 2
+        if let focusLatitude {
+            try container.encode(["degrees": focusLatitude.degrees], forKey: .focusLatitude)
+        }
+        if let focusLongitude {
+            try container.encode(["degrees": focusLongitude.degrees], forKey: .focusLongitude)
+        }
+        
+        if let scale {
+            try container.encode(scale, forKey: .scale)
+        }
+    }
 
     // Function to update globe state dynamically
     mutating func updateState(position: SIMD3<Float>?, scale: Float?, orientation: simd_quatf?) {
