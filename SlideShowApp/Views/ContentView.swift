@@ -9,30 +9,23 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppModel.self) private var appModel
-    
-#if os(visionOS)
-    @State private var editMode = EditMode.inactive
-#endif
-    
-#if os(macOS)
-    @Environment(\.openWindow) private var openWindow
-#endif
-    
-    @State private var showExportJSON = false // true when the story nodes are to be exported to a JSON file
-    @State private var showImportJSON = false // true when the story nodes are to be imported from a JSON file
+    @Environment(\.editMode) private var editMode
+    @State private var showExportJSON = false
+    @State private var showImportJSON = false
     
     var body: some View {
-        NavigationSplitView {
-            navigationView
-            footerView
-        } detail: {
-            detailView
+        Group{
+            if appModel.isPresenting {
+                PresentationView()
+            } else {
+                editView
+            }
         }
         .fileExporter(
             isPresented: $showExportJSON,
             document: jsonDocument,
             contentType: .json,
-            defaultFilename: "Story Nodes",
+            defaultFilename: "Story",
             onCompletion: { result in
                 if case .failure(let error) = result {
                     appModel.errorToShowInAlert = error
@@ -59,12 +52,40 @@ struct ContentView: View {
     }
     
     @ViewBuilder
+    private var editView: some View {
+            NavigationSplitView {
+                ZStack {
+                    navigationView
+                    VStack {
+                        Spacer()
+                        footerView
+                            .controlSize(.large)
+                            .padding(.top)
+                            .padding(.bottom, 24)
+                            .frame(maxWidth: .infinity)
+                            .ignoresSafeArea()
+                            .background(.ultraThickMaterial)
+                    }
+                }
+                .navigationSplitViewColumnWidth(350)
+                .background(.thickMaterial)
+            } detail: {
+                detailView
+        }
+    }
+    
+    @ViewBuilder
     private var navigationView: some View {
         List(selection: Bindable(appModel).selectedStoryNodeID) {
             ForEach(appModel.story.storyNodes) {
                 Text($0.name)
             }
-            .onDelete { appModel.story.storyNodes.remove(atOffsets: $0) }
+            .onDelete {
+                appModel.story.storyNodes.remove(atOffsets: $0)
+                if appModel.story.storyNodes.isEmpty {
+                    editMode?.wrappedValue = .inactive
+                }
+            }
             .onMove { appModel.story.storyNodes.move(fromOffsets: $0, toOffset: $1) }
         }
         .listStyle(.sidebar)
@@ -74,21 +95,9 @@ struct ContentView: View {
                 Label("Add Story Node", systemImage: "plus")
             }
             
-#if os(visionOS)
             EditButton()
                 .disabled(!appModel.story.hasStoryNodes)
-#else
-            Button(action: deleteStoryNode, label: { Label("Delete Story Node", systemImage: "minus") })
-                .disabled(appModel.selectedStoryNodeID == nil)
-            
-            Button(action: {
-                openWindow(id: AppModel.macOSGlobeViewID)
-            }, label: { Label("Globe", systemImage: "globe") })
-#endif
         }
-#if os(visionOS)
-        .environment(\.editMode, $editMode)
-#endif
     }
     
     @ViewBuilder
@@ -119,19 +128,20 @@ struct ContentView: View {
             .disabled(!appModel.story.hasStoryNodes)
         }
         .labelStyle(.iconOnly)
-        .padding()
     }
     
     @ViewBuilder
     private var detailView: some View {
         if let selectedStoryNodeID = appModel.selectedStoryNodeID,
            let index = appModel.story.storyNodeIndex(for: selectedStoryNodeID) {
-            StoryNodeView(storyNode: Bindable(appModel).story.storyNodes[index],
-                          story: Bindable(appModel).story)
+            StoryNodeView(story: Bindable(appModel).story,
+                          storyNode: Bindable(appModel).story.storyNodes[index])
         } else {
             let message = appModel.story.hasStoryNodes ? "Select a story node or press the play button." : "Add a Story Node"
-            Text(message)
-                .font(.title)
+            ContentUnavailableView {
+                Label(message, systemImage: "plus")
+                    .labelStyle(.titleOnly)
+            }
         }
     }
     
@@ -149,9 +159,7 @@ struct ContentView: View {
             appModel.selectedStoryNodeID = storyNode.id // select the new story node
         }
         
-#if os(visionOS)
-        editMode = .inactive
-#endif
+        editMode?.wrappedValue = .inactive
     }
     
     private func deleteStoryNode() {

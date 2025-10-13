@@ -7,33 +7,35 @@
 
 import SwiftUI
 
+
+
 struct GlobeStateView: View {
     @Binding var globeState: GlobeState
-
+    
     var body: some View {
         Form {
             Section("Globe Position") {
                 LabeledContent(content: {
-                    HStack(alignment: .top) { // Align vertically
+                    HStack(alignment: .top) {
                         VStack {
                             Text("X") // Label
-                            TextField("X", value: positionXBinding, formatter: formatter()) // Input
-                                .modifier(NumberField())
-                            Slider(value: positionXBinding, in: -5...5) // Slider (aligned below input)
+                            TextField("X", value: positionXBinding, formatter: Formatter.position)
+                                .numberField()
+                            Slider(value: positionXBinding, in: -5...5)
                         }
-
+                        
                         VStack {
                             Text("Y") // Label
-                            TextField("Y", value: positionYBinding, formatter: formatter()) // Input
-                                .modifier(NumberField())
-                            Slider(value: positionYBinding, in: -5...5) // Slider (aligned below input)
+                            TextField("Y", value: positionYBinding, formatter: Formatter.position)
+                                .numberField()
+                            Slider(value: positionYBinding, in: -5...5)
                         }
-
+                        
                         VStack {
                             Text("Z") // Label
-                            TextField("Z", value: positionZBinding, formatter: formatter()) // Input
-                                .modifier(NumberField())
-                            Slider(value: positionZBinding, in: -5...5) // Slider (aligned below input)
+                            TextField("Z", value: positionZBinding, formatter: Formatter.position)
+                                .numberField()
+                            Slider(value: positionZBinding, in: -5...5)
                         }
                     }
                     .disabled(globeState.position == nil) // Disable if position is nil
@@ -42,7 +44,7 @@ struct GlobeStateView: View {
                         .fixedSize()
                 })
             }
-
+            
             
             Section("Focus Point") {
                 Toggle(isOn: useFocusPointBinding) { Text("Rotate to Focus Point") }
@@ -50,15 +52,15 @@ struct GlobeStateView: View {
                 Grid(alignment: .leading) {
                     GridRow {
                         Text("Latitude")
-                        TextField("Latitude", value: focusLatitudeBinding, formatter: formatter(min: -90, max: +90))
-                            .modifier(NumberField())
+                        TextField("Latitude", value: focusLatitudeBinding, formatter: Formatter.latitude)
+                            .numberField()
                         Slider(value: focusLatitudeBinding, in: -90...90)
                             .labelsHidden()
                     }
                     GridRow {
                         Text("Longitude")
-                        TextField("Longitude", value: focusLongitudeBinding, formatter: formatter(min: -180, max: +180))
-                            .modifier(NumberField())
+                        TextField("Longitude", value: focusLongitudeBinding, formatter: Formatter.longitude)
+                            .numberField()
                         Slider(value: focusLongitudeBinding, in: -180...180)
                             .labelsHidden()
                     }
@@ -68,9 +70,9 @@ struct GlobeStateView: View {
             
             Section("Globe Size") {
                 LabeledContent(content: {
-                    TextField("Scale", value: scaleBinding, formatter: formatter(min: 0))
+                    TextField("Scale", value: scaleBinding, formatter: Formatter.scale)
                         .labelsHidden()
-                        .modifier(NumberField())
+                        .numberField()
                         .disabled(globeState.scale == nil)
                     
                 }, label: {
@@ -80,19 +82,7 @@ struct GlobeStateView: View {
             }
         }
     }
-    
-    private func formatter(
-        min: Double = -Double.infinity,
-        max: Double = .infinity
-    ) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 3
-        formatter.minimum = min as NSNumber
-        formatter.maximum = max as NSNumber
-        return formatter
-    }
-    
+        
     private var usePositionBinding: Binding<Bool> {
         Binding<Bool>(
             get: { globeState.position != nil },
@@ -126,7 +116,7 @@ struct GlobeStateView: View {
     private var rotateToFocusPoint: Bool {
         globeState.focusLatitude != nil
     }
-
+    
     private var useFocusPointBinding: Binding<Bool> {
         Binding<Bool>(
             get: { rotateToFocusPoint },
@@ -181,20 +171,5 @@ struct GlobeStateView: View {
         Binding<Float>(
             get: { globeState.scale ?? 1 },
             set: { globeState.scale = $0 })
-    }
-}
-
-fileprivate struct NumberField: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .textFieldStyle(.roundedBorder)
-#if canImport(UIKit)
-            .keyboardType(.decimalPad)
-#endif
-            .multilineTextAlignment(.trailing)
-            .monospacedDigit()
-            .frame(maxWidth: 200)
-            .frame(minWidth: 75)
-            .labelsHidden() // visionOS does not render labels for text fields, but macOS does.
     }
 }

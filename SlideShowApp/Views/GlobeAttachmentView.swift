@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import RealityFoundation
+import RealityKit
 
 struct GlobeAttachmentView: View {
     let annotation: Annotation
@@ -30,7 +30,7 @@ struct GlobeAttachmentView: View {
     // Simple view for annotations without descriptions
     private var simpleView: some View {
         Group {
-            if let fileName = annotation.usdzFileName {
+            if annotation.usdzFileName != nil {
                 Button(action: {
                     Task {
                         await toggle3DModel(named: annotation.usdzFileName ?? "unknown")
@@ -38,13 +38,13 @@ struct GlobeAttachmentView: View {
                 }) {
                     Text(annotation.text)
                         .font(.caption)
-                        .padding(3)
+                        .padding(12)
                 }
                 .buttonStyle(.borderedProminent)
             } else {
                 Text(annotation.text)
                     .font(.caption)
-                    .padding(3)
+                    .padding(12)
             }
         }
         .glassBackgroundEffect()

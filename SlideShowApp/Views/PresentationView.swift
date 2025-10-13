@@ -14,7 +14,7 @@ struct PresentationView: View {
     var body: some View {
         VStack {
             if let currentStoryNode = appModel.story.storyNodes[safe: currentIndex] {
-                SlideView(slide: .constant(currentStoryNode.slide), isEditable: false)
+                SlidePresentationView(slide: currentStoryNode.slide)
                     .padding()
             } else {
                 Spacer()
@@ -69,6 +69,6 @@ extension Array {
 
 #Preview{
     PresentationView()
-        .glassBackgroundEffect()
+        .backgroundStyle(.background)
         .environment(AppModel())
 }
