@@ -21,6 +21,15 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				StoryFiles/ship_v2.usdz,
+				StoryFiles/Story1_ColumbusVoyage.json,
+				StoryFiles/Story1Event1Map.jpg,
+				StoryFiles/Story1Event3boat.AVIF,
+				StoryFiles/Story1Event6Salvador.JPG,
+				StoryFiles/Story1Event7Cuba.JPG,
+				StoryFiles/Story2_OperationB.json,
+				StoryFiles/Story2Event1map.PNG,
+				StoryFiles/Story2Event2Map.JPG,
 			);
 			target = 7D60D7F52CF559B200D7C8AD /* SlideShowApp */;
 		};
