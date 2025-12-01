@@ -67,9 +67,7 @@ struct InfoPanelEditSheet: View {
                         Button(action: {
                             isFileImporterPresented = true
                         }) {
-                            Text(selectedUSDZFileName ?? "Select .usdz file")
-                                .foregroundColor(.blue)
-                                .underline()
+                            Text(selectedUSDZFileName ?? "Select USDZ File")
                         }
                     }
                 }
