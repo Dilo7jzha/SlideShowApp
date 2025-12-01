@@ -41,8 +41,8 @@ struct Annotation: Identifiable, Codable, Hashable {
     /// Custom encoding and decoding for compatibility with vision 2: visionOS 26 changed the JSON encoding format of the `Angle` struct.
     enum CodingKeys: String, CodingKey {
         case id
-        case latitudeDegrees
-        case longitudeDegrees
+        case latitude
+        case longitude
         case offset
         case modelOffset
         case text
@@ -82,16 +82,13 @@ struct Annotation: Identifiable, Codable, Hashable {
         self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
 
         // dictionary format of visionOS 2
-        let latDict = try container.decodeIfPresent([String: Double].self, forKey: .latitudeDegrees)
-        let lonDict = try container.decodeIfPresent([String: Double].self, forKey: .longitudeDegrees)
-        if let latDegrees = latDict?["degrees"] {
+        let latDict = try container.decodeIfPresent([String: Double].self, forKey: .latitude)
+        let lonDict = try container.decodeIfPresent([String: Double].self, forKey: .longitude)
+        if let latDegrees = latDict?["degrees"], let lonDegrees = lonDict?["degrees"] {
             latitude = .degrees(latDegrees)
-        } else {
-            latitude = .zero
-        }
-        if let lonDegrees = lonDict?["degrees"] {
             longitude = .degrees(lonDegrees)
         } else {
+            latitude = .zero
             longitude = .zero
         }
 
@@ -110,8 +107,8 @@ struct Annotation: Identifiable, Codable, Hashable {
         try container.encode(id, forKey: .id)
 
         // dictionary format of visionOS 2
-        try container.encode(["degrees": latitude.degrees], forKey: .latitudeDegrees)
-        try container.encode(["degrees": longitude.degrees], forKey: .longitudeDegrees)
+        try container.encode(["degrees": latitude.degrees], forKey: .latitude)
+        try container.encode(["degrees": longitude.degrees], forKey: .longitude)
 
         try container.encode(offset, forKey: .offset)
         try container.encode(modelOffset, forKey: .modelOffset)

@@ -48,11 +48,12 @@ struct GlobeState: Hashable, Codable {
         // dictionary format of visionOS 2
         let latDict = try container.decodeIfPresent([String: Double].self, forKey: .focusLatitude)
         let lonDict = try container.decodeIfPresent([String: Double].self, forKey: .focusLongitude)
-        if let latDegrees = latDict?["degrees"] {
+        if let latDegrees = latDict?["degrees"], let lonDegrees = lonDict?["degrees"] {
             focusLatitude = .degrees(latDegrees)
-        }
-        if let lonDegrees = lonDict?["degrees"] {
             focusLongitude = .degrees(lonDegrees)
+        } else {
+            focusLatitude = try container.decodeIfPresent(Angle.self, forKey: .focusLatitude)
+            focusLongitude = try container.decodeIfPresent(Angle.self, forKey: .focusLongitude)
         }
         
         self.scale = try container.decodeIfPresent(Float.self, forKey: .scale)
