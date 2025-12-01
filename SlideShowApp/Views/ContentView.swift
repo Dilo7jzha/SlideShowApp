@@ -122,7 +122,7 @@ struct ContentView: View {
             Button(action: {
                 appModel.isPresenting.toggle()
             }) {
-                Label("Story File", systemImage: "play.fill")
+                Label("Story File", systemImage: "play.circle")
                     .imageScale(.large)
             }
             .disabled(!appModel.story.hasStoryNodes)
