@@ -63,7 +63,7 @@ struct GlobeAttachmentView: View {
                     Text(annotation.text)
                         .matchedGeometryEffect(id: "title", in: animation)
                         .font(.caption)
-                        .padding(3)
+                        .padding(6)
                 }
                 .buttonStyle(.plain) // Use plain style to avoid extra padding
                 .background {
@@ -85,7 +85,7 @@ struct GlobeAttachmentView: View {
                     if let fileName = annotation.usdzFileName {
                         Button("Show 3D Model") {
                             Task {
-                                await toggle3DModel(named: annotation.usdzFileName ?? "unknown")
+                                await toggle3DModel(named: fileName)
                             }
                         }
                         .buttonStyle(.borderedProminent)
@@ -117,23 +117,23 @@ struct GlobeAttachmentView: View {
         }
         .glassBackgroundEffect()
     }
-
+    
     private func toggle3DModel(named fileName: String) async {
         guard let globeEntity = appModel.globeEntity,
               let url = annotation.usdzFileURL else {
-            print("Missing model info")
+            appModel.errorToShowInAlert = error("Missing model info")
             return
         }
-
+        
         let modelName = "annotationModel_\(annotation.id)"
-
+        
         // If the model is already in the scene, remove it
         if let existing = globeEntity.findEntity(named: modelName) {
             existing.removeFromParent()
             isModelVisible = false
             return
         }
-
+        
         // Otherwise, load and display the model
         let didAccess = url.startAccessingSecurityScopedResource()
         defer {
@@ -141,17 +141,17 @@ struct GlobeAttachmentView: View {
                 url.stopAccessingSecurityScopedResource()
             }
         }
-
+        
         do {
-            let model = try await Entity.load(contentsOf: url)
+            let model = try await ModelEntity(contentsOf: url)
             model.name = modelName
             
             // Adjust scale based on globe size to maintain proportions
             let scaleMultiplier: Float = 0.015 // Reduced from 0.02
             model.scale = [scaleMultiplier, scaleMultiplier, scaleMultiplier]
-
+            
             // Calculate position on globe surface
-            let basePosition = positionOnGlobe(latitude: annotation.latitude, longitude: annotation.longitude, radius: appModel.globe.radius)
+            let basePosition = Self.positionOnGlobe(latitude: annotation.latitude, longitude: annotation.longitude, radius: appModel.globe.radius)
             
             // Use the model offset from annotation
             let offsetDistance: Float = annotation.modelOffset
@@ -171,19 +171,19 @@ struct GlobeAttachmentView: View {
             // Add to stateEntity to keep properly attached during globe rotation
             globeEntity.stateEntity.addChild(model)
             isModelVisible = true
-        } catch {
-            print("Failed to load 3D model: \(error)")
+        } catch let err {
+            appModel.errorToShowInAlert = error("Failed to load 3D model: \(err)")
         }
     }
-}
-
-func positionOnGlobe(latitude: Angle, longitude: Angle, radius: Float = 1.0) -> SIMD3<Float> {
-    let latRad = Float(latitude.radians)
-    let lonRad = Float(longitude.radians)
-
-    let x = radius * cos(latRad) * sin(lonRad)
-    let y = radius * sin(latRad)
-    let z = radius * cos(latRad) * cos(lonRad)
-
-    return SIMD3<Float>(x, y, z)
+    
+    private static func positionOnGlobe(latitude: Angle, longitude: Angle, radius: Float) -> SIMD3<Float> {
+        let latRad = Float(latitude.radians)
+        let lonRad = Float(longitude.radians)
+        
+        let x = radius * cos(latRad) * sin(lonRad)
+        let y = radius * sin(latRad)
+        let z = radius * cos(latRad) * cos(lonRad)
+        
+        return SIMD3<Float>(x, y, z)
+    }
 }

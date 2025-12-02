@@ -6,15 +6,15 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct InfoPanelEditSheet: View {
     @Binding var infoPanel: Annotation
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppModel.self) private var appModel
     
-    @State private var selectedUSDZFileName: String? = nil
-    @State private var isFileImporterPresented: Bool = false
-    @State private var selectedUSDZFileURL: URL? = nil
-    
+    @State private var showUSDZFileImporter: Bool = false
+       
     var body: some View {
         VStack {
             Text("Info Panel")
@@ -63,15 +63,31 @@ struct InfoPanelEditSheet: View {
                 
                 GridRow {
                     Text("3D Model")
-                    HStack {
-                        Button(action: {
-                            isFileImporterPresented = true
-                        }) {
-                            Text(selectedUSDZFileName ?? "Select USDZ File")
+                    VStack(alignment: .leading) {
+                        Button("Select USDZ File")  {
+                            showUSDZFileImporter = true
+                        }
+                        .fileImporter(
+                            isPresented: $showUSDZFileImporter,
+                            allowedContentTypes: [.usdz],
+                            allowsMultipleSelection: false
+                        ) { result in
+                            switch result {
+                            case .success(let urls):
+                                infoPanel.usdzFileURL = urls.first
+                            case .failure:
+                                appModel.errorToShowInAlert = error("The model could not be imported.")
+                            }
+                        }
+                        
+                        if let usdzFileName = infoPanel.usdzFileName {
+                            Text("\(usdzFileName)")
+                                .font(.callout)
                         }
                     }
                 }
-                if selectedUSDZFileName != nil {
+                
+                if infoPanel.usdzFileName != nil {
                     GridRow {
                         Text("Model Offset")
                         HStack {

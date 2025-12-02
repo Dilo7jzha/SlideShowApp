@@ -33,8 +33,11 @@ struct Annotation: Identifiable, Codable, Hashable {
     /// Entity to place on globe, loaded from app bundle
     var entityName: String? = "Pin_V2"
 
-    var usdzFileName: String?
     var usdzFileURL: URL?
+    
+    var usdzFileName: String? {
+        usdzFileURL?.lastPathComponent
+    }
     
     // MARK: - Codable
     
@@ -49,8 +52,7 @@ struct Annotation: Identifiable, Codable, Hashable {
         case description
         case imageNames
         case entityName
-        case usdzFileName
-        case usdzFileURL
+        case usdzFileBookmark
     }
 
     init(id: UUID = UUID(),
@@ -62,7 +64,6 @@ struct Annotation: Identifiable, Codable, Hashable {
          description: String = "",
          imageNames: [String] = [],
          entityName: String? = "Pin_V2",
-         usdzFileName: String? = nil,
          usdzFileURL: URL? = nil) {
         self.id = id
         self.latitude = latitude
@@ -73,14 +74,13 @@ struct Annotation: Identifiable, Codable, Hashable {
         self.description = description
         self.imageNames = imageNames
         self.entityName = entityName
-        self.usdzFileName = usdzFileName
         self.usdzFileURL = usdzFileURL
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-
+        
         // dictionary format of visionOS 2
         let latDict = try container.decodeIfPresent([String: Double].self, forKey: .latitude)
         let lonDict = try container.decodeIfPresent([String: Double].self, forKey: .longitude)
@@ -91,15 +91,18 @@ struct Annotation: Identifiable, Codable, Hashable {
             latitude = .zero
             longitude = .zero
         }
-
+        
         self.offset = try container.decodeIfPresent(Float.self, forKey: .offset) ?? 0.03
         self.modelOffset = try container.decodeIfPresent(Float.self, forKey: .modelOffset) ?? 0.015
         self.text = try container.decode(String.self, forKey: .text)
         self.description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
         self.imageNames = try container.decodeIfPresent([String].self, forKey: .imageNames) ?? []
         self.entityName = try container.decodeIfPresent(String.self, forKey: .entityName) ?? "Pin_V2"
-        self.usdzFileName = try container.decodeIfPresent(String.self, forKey: .usdzFileName)
-        self.usdzFileURL = try container.decodeIfPresent(URL.self, forKey: .usdzFileURL)
+        
+        if let usdzBookmarkData = try container.decodeIfPresent(Data.self, forKey: .usdzFileBookmark) {
+            var isStale = false
+            self.usdzFileURL = try URL(resolvingBookmarkData: usdzBookmarkData, bookmarkDataIsStale: &isStale)
+        }
     }
 
     func encode(to encoder: Encoder) throws {
@@ -116,8 +119,12 @@ struct Annotation: Identifiable, Codable, Hashable {
         if !description.isEmpty { try container.encode(description, forKey: .description) }
         if !imageNames.isEmpty { try container.encode(imageNames, forKey: .imageNames) }
         try container.encodeIfPresent(entityName, forKey: .entityName)
-        try container.encodeIfPresent(usdzFileName, forKey: .usdzFileName)
-        try container.encodeIfPresent(usdzFileURL, forKey: .usdzFileURL)
+        
+        // persist URL as bookmark
+        if let usdzFileURL {
+            let usdzBookmarkData = try usdzFileURL.bookmarkData()
+            try container.encodeIfPresent(usdzBookmarkData, forKey: .usdzFileBookmark)
+        }
     }
     
     // MARK: - Position and orientation
