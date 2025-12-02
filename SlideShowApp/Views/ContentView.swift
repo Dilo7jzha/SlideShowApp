@@ -120,6 +120,9 @@ struct ContentView: View {
             ToggleImmersiveSpaceButton()
             
             Button(action: {
+                if appModel.selectedStoryNodeID == nil {
+                    appModel.selectFirstStoryNode()
+                }
                 appModel.isPresenting.toggle()
             }) {
                 Label("Story File", systemImage: "play.circle")

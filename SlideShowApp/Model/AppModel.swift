@@ -29,6 +29,14 @@ class AppModel {
 
     /// The ID of the currently selected StoryNode.
     var selectedStoryNodeID: StoryNode.ID?
+    
+    var selectedStoryNode: StoryNode? {
+        story.storyNodes.first(where: { $0.id == selectedStoryNodeID })
+    }
+    
+    func selectFirstStoryNode() {
+        selectedStoryNodeID = story.storyNodes.first?.id
+    }
 
     struct GlobeConfiguration {
         var minScale: Float = 0.5

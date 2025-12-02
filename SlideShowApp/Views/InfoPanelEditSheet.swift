@@ -87,7 +87,7 @@ struct InfoPanelEditSheet: View {
                     }
                 }
                 
-                if infoPanel.usdzFileName != nil {
+                if infoPanel.has3DModel {
                     GridRow {
                         Text("Model Offset")
                         HStack {

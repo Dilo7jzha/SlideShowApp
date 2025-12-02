@@ -30,10 +30,10 @@ struct GlobeAttachmentView: View {
     // Simple view for annotations without descriptions
     private var simpleView: some View {
         Group {
-            if annotation.usdzFileName != nil {
+            if annotation.has3DModel {
                 Button(action: {
                     Task {
-                        await toggle3DModel(named: annotation.usdzFileName ?? "unknown")
+                        await toggle3DModel()
                     }
                 }) {
                     Text(annotation.text)
@@ -82,10 +82,10 @@ struct GlobeAttachmentView: View {
                     Text(annotation.description)
                         .font(.caption)
                     
-                    if let fileName = annotation.usdzFileName {
+                    if annotation.has3DModel {
                         Button("Show 3D Model") {
                             Task {
-                                await toggle3DModel(named: fileName)
+                                await toggle3DModel()
                             }
                         }
                         .buttonStyle(.borderedProminent)
@@ -118,7 +118,7 @@ struct GlobeAttachmentView: View {
         .glassBackgroundEffect()
     }
     
-    private func toggle3DModel(named fileName: String) async {
+    private func toggle3DModel() async {
         guard let globeEntity = appModel.globeEntity,
               let url = annotation.usdzFileURL else {
             appModel.errorToShowInAlert = error("Missing model info")

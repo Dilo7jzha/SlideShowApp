@@ -39,6 +39,10 @@ struct Annotation: Identifiable, Codable, Hashable {
         usdzFileURL?.lastPathComponent
     }
     
+    var has3DModel: Bool {
+        usdzFileURL != nil
+    }
+    
     // MARK: - Codable
     
     /// Custom encoding and decoding for compatibility with vision 2: visionOS 26 changed the JSON encoding format of the `Angle` struct.

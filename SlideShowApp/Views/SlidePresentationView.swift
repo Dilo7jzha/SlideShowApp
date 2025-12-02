@@ -18,7 +18,14 @@ struct SlidePresentationView: View {
     var isEditable: Bool = true // Controls whether editing features (text and image) are enabled
     
     var body: some View {
+        let title = appModel.selectedStoryNode?.name
         VStack(spacing: 20) {
+            if let title {
+                Text(title)
+                    .font(.title)
+                    .foregroundColor(.secondary)
+                    .padding(.top)
+            }
             if let imageView, !appModel.isImageViewerOpen {
                 imageView
                     .resizable()

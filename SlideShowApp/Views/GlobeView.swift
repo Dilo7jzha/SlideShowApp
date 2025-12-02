@@ -62,8 +62,8 @@ struct GlobeView: View {
     /// Updates annotation positions dynamically when the selected story node changes.
     private func updateAnnotationPosition(attachments: RealityViewAttachments) async {
         attachmentEntities?.children.removeAll()
-
-        guard let storyNode = appModel.story.storyNodes.first(where: { $0.id == appModel.selectedStoryNodeID }) else { return }
+        
+        guard let storyNode = appModel.selectedStoryNode else { return }
         
         for annotationID in storyNode.annotationIDs {
             guard let annotation = appModel.story.annotations.first(where: { $0.id == annotationID }),
@@ -97,8 +97,7 @@ struct GlobeView: View {
             }
             
             // Handle any already displayed 3D models by repositioning them
-            if let usdzFileName = annotation.usdzFileName,
-               let modelEntity = appModel.globeEntity?.findEntity(named: "annotationModel_\(annotation.id)") {
+            if let modelEntity = appModel.globeEntity?.findEntity(named: "annotationModel_\(annotation.id)") {
                 
                 // Recalculate position for any existing 3D model
                 let basePosition = annotation.positionOnGlobe(radius: appModel.globe.radius)
